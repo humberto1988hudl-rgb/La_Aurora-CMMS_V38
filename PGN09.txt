@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizador del Cuarto 1 y los Horómetro de las Máquinas</title>
+
+  <!-- MQTT -->
+  <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+
+  <!-- Canvas Gauges (estilo velocímetro) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-gauges@2.1.7/gauge.min.js"></script>
+
+  <style>
+    .background-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("HU.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: brightness(1.2) contrast(1.1);
+      z-index: -1;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: rgba(0, 123, 255, 0.9);
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 20px;
+      flex: 1;
+      overflow: hidden;
+      background-color: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(2px);
+    }
+
+    .left-panel {
+      width: 60%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #machineSelect {
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 1em;
+    }
+
+    #description {
+      background-color: rgba(255, 255, 255, 0.6);
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    #descriptionText {
+      flex: 1;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    #description img {
+      max-width: 200px;
+      height: auto;
+      margin-left: 20px;
+      border-radius: 5px;
+    }
+
+    #horometroVisual {
+      margin-top: 10px;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.6);
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(2px);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      width: 35%;
+    }
+
+    .dashboard-title {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .gauge-style {
+      width: 100%;
+      max-width: 250px;
+      margin-bottom: 40px;
+    }
+
+    #statusIndicators {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      color: #000;
+    }
+
+    .light {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background-color: red;
+      border: 1px solid #000;
+    }
+
+    footer {
+      background-color: rgba(0, 123, 255, 0.9);
+      color: white;
+      text-align: center;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="background-overlay"></div>
+
+  <header>
+    <h1>Visualizador del Cuarto 1 y los Horómetro de las Máquinas</h1>
+  </header>
+
+  <main class="container">
+    <div class="left-panel">
+      <div id="statusIndicators">
+        <div class="indicator"><div id="lightM1" class="light"></div>PMB #1</div>
+        <div class="indicator"><div id="lightM2" class="light"></div>PMB #2</div>
+        <div class="indicator"><div id="lightM3" class="light"></div>PMB #3</div>
+      </div>
+
+      <select id="machineSelect" onchange="updateDescription()">
+        <option value="" disabled selected>Seleccione una máquina</option>
+        <option value="RSC-100">PMB #1</option>
+        <option value="TPC-100">PMB #2</option>
+        <option value="TRF-100">PMB #3</option>
+      </select>
+
+      <div id="description">
+        <div id="descriptionText">
+          <strong>Modelo:</strong> PMB #3<br>
+          <strong>Año:</strong> 2010<br>
+          <strong>Serie:</strong> COND029384U<br>
+          <strong>Ubicación:</strong> Planta 7
+        </div>
+        <img src="imagen3.jpg" id="machineImage" alt="Imagen de PMB">
+      </div>
+
+      <div id="horometroVisual">
+        <strong>Horómetro:</strong> <span id="horometroValue">0h 1m 22s</span>
+      </div>
+    </div>
+
+    <div class="dashboard">
+      <div class="dashboard-title">Temperatura y Humedad del Cuarto 1</div>
+      <canvas id="tempGauge" class="gauge-style"></canvas>
+      <canvas id="humGauge" class="gauge-style"></canvas>
+    </div>
+  </main>
+
+  <footer>
+    Sistema de Control de Horómetros de las Máquinas - Proyecto ESP32 y MQTT
+  </footer>
+
+<script>
+const machineDescriptions = {
+  "RSC-100": { modelo: "PMB #1", año: 1976, serie: "7783725g76s", ubicacion: "Planta 1", imagen: "imagen1.jpg" },
+  "TPC-100": { modelo: "PMB #2", año: 1980, serie: "8293737h83d", ubicacion: "Planta 2", imagen: "imagen2.jpg" },
+  "TRF-100": { modelo: "PMB #3", año: 2010, serie: "COND029384U", ubicacion: "Planta 7", imagen: "imagen3.jpg" }
+};
+
+function updateDescription() {
+  const selected = document.getElementById("machineSelect").value;
+  const m = machineDescriptions[selected];
+  document.getElementById("descriptionText").innerHTML = `
+    <strong>Modelo:</strong> ${m.modelo}<br>
+    <strong>Año:</strong> ${m.año}<br>
+    <strong>Serie:</strong> ${m.serie}<br>
+    <strong>Ubicación:</strong> ${m.ubicacion}
+  `;
+  document.getElementById("machineImage").src = m.imagen;
+}
+
+// ================== GAUGES ===================
+var tempGauge = new RadialGauge({
+    renderTo: 'tempGauge',
+    width: 250,
+    height: 250,
+    units: "°C",
+    minValue: 0,
+    maxValue: 80,
+    majorTicks: ["0","10","20","30","40","50","60","70","80"],
+    minorTicks: 2,
+    strokeTicks: true,
+    highlights: [
+        { from: 0, to: 20, color: "rgba(0,255,0,.3)" },
+        { from: 20, to: 60, color: "rgba(255,255,0,.3)" },
+        { from: 60, to: 80, color: "rgba(255,0,0,.3)" }
+    ],
+    colorPlate: "#fff",
+    needleType: "arrow",
+    needleWidth: 2,
+    animationDuration: 300,
+    animationRule: "linear",
+    value: 0
+}).draw();
+
+var humGauge = new RadialGauge({
+    renderTo: 'humGauge',
+    width: 250,
+    height: 250,
+    units: "%",
+    minValue: 0,
+    maxValue: 100,
+    majorTicks: ["0","10","20","30","40","50","60","70","80","90","100"],
+    minorTicks: 2,
+    strokeTicks: true,
+    highlights: [
+        { from: 0, to: 30, color: "rgba(255,0,0,.3)" },
+        { from: 30, to: 60, color: "rgba(255,255,0,.3)" },
+        { from: 60, to: 100, color: "rgba(0,255,0,.3)" }
+    ],
+    colorPlate: "#fff",
+    needleType: "arrow",
+    needleWidth: 2,
+    animationDuration: 300,
+    animationRule: "linear",
+    value: 0
+}).draw();
+
+function updateGauges(temp, hum) {
+  tempGauge.value = temp;
+  humGauge.value = hum;
+}
+
+// ============= MQTT ==============
+const client = mqtt.connect('ws://192.168.1.11:9001');
+client.on('connect', () => client.subscribe('cuarto1/#'));
+
+document.getElementById("lightM1").style.backgroundColor = "red";
+document.getElementById("lightM2").style.backgroundColor = "red";
+document.getElementById("lightM3").style.backgroundColor = "red";
+
+let machineTimers = {
+  maquina1: null,
+  maquina2: null,
+  maquina3: null
+};
+
+function resetMachineTimer(maquina, lightId) {
+  if (machineTimers[maquina]) clearTimeout(machineTimers[maquina]);
+  machineTimers[maquina] = setTimeout(() => {
+    document.getElementById(lightId).style.backgroundColor = "red";
+  }, 3000);
+}
+
+client.on('message', (topic, message) => {
+  const data = JSON.parse(message.toString());
+  if (topic === 'cuarto1/tempHum') updateGauges(data.temp, data.hum);
+
+  if (topic.includes("maquina1")) {
+    updateHorometro("maquina1", data);
+    document.getElementById("lightM1").style.backgroundColor = data.activo ? "green" : "red";
+    resetMachineTimer("maquina1", "lightM1");
+  } else if (topic.includes("maquina2")) {
+    updateHorometro("maquina2", data);
+    document.getElementById("lightM2").style.backgroundColor = data.activo ? "green" : "red";
+    resetMachineTimer("maquina2", "lightM2");
+  } else if (topic.includes("maquina3")) {
+    updateHorometro("maquina3", data);
+    document.getElementById("lightM3").style.backgroundColor = data.activo ? "green" : "red";
+    resetMachineTimer("maquina3", "lightM3");
+  }
+});
+
+function updateHorometro(maquina, data) {
+  const selected = document.getElementById("machineSelect").value;
+  if ((maquina === "maquina1" && selected === "RSC-100") ||
+      (maquina === "maquina2" && selected === "TPC-100") ||
+      (maquina === "maquina3" && selected === "TRF-100")) {
+    document.getElementById("horometroValue").innerText = `${data.h}h ${data.m}m ${data.s}s`;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMMS PRO - La Aurora v10</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f4f7f6;
+            --dark-card: #1e1e1e;
+            --aurora-red: #e74c3c;
+            --aurora-green: #1abc9c;
+            --aurora-blue: #3498db;
+            --critic-high: #ff9f43;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); height: 100vh; overflow: hidden; }
+
+        /* --- LOGIN / SELECTOR --- */
+        #selector-pantalla {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+            padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            width: 400px; color: white; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        /* --- DASHBOARD --- */
+        #main-dashboard { display: none; height: 100vh; flex-direction: column; }
+        header { background: #1a252f; color: white; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        .container { display: grid; grid-template-columns: 3.5fr 1.2fr; gap: 15px; padding: 15px; height: calc(100vh - 65px); box-sizing: border-box; }
+        
+        .machine-section { overflow-y: auto; background: white; border-radius: 12px; padding: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        .machine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+
+        /* --- CARDS --- */
+        .card { 
+            background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 12px; 
+            position: relative; transition: transform 0.2s; border-top: 5px solid #ccc;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .card.online { border-top-color: var(--aurora-green); }
+        .card.alert { border-top-color: var(--aurora-red); animation: pulse 2s infinite; }
+        
+        .badge-critic { position: absolute; top: 8px; right: 8px; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; background: #eee; }
+        .badge-critic.A { background: #ffeaa7; color: #d35400; font-weight: bold; }
+
+        .maint-bg { background: #f0f0f0; height: 10px; border-radius: 5px; margin: 12px 0; position: relative; }
+        .maint-bar { height: 100%; border-radius: 5px; transition: width 0.5s ease-in-out; }
+
+        /* --- SIDEBAR --- */
+        .side-panel { background: white; padding: 15px; border-radius: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .log-container { font-size: 0.8rem; flex: 1; border-top: 1px solid #eee; padding-top: 10px; }
+        .log-item { padding: 5px; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
+
+        .btn-ot { width: 100%; background: #34495e; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-ot:hover { background: var(--aurora-blue); }
+    </style>
+</head>
+<body>
+
+<div id="selector-pantalla">
+    <div class="login-card">
+        <h1 style="margin:0; letter-spacing: 2px;">AURORA CMMS</h1>
+        <p style="color: #1abc9c; font-weight: bold; margin-bottom: 30px;">PLANTA DE PRODUCCIÓN</p>
+        
+        <div style="text-align: left; margin-bottom: 20px;">
+            <label style="font-size: 0.7rem; color: #aaa;">SELECCIONAR ÁREA DE TRABAJO</label>
+            <select id="select-planta" style="width:100%; padding:12px; margin-top:5px; border-radius:8px;">
+                <option value="todas">VISTA GLOBAL (80 MÁQUINAS)</option>
+                <option value="PHOENIX">NAVE PHOENIX</option>
+                <option value="ARENA">NAVE ARENA</option>
+            </select>
+        </div>
+
+        <button class="btn-ot" style="padding:15px; background: var(--aurora-green);" onclick="entrarAlSistema()">INICIAR MONITOREO</button>
+    </div>
+</div>
+
+<div id="main-dashboard">
+    <header>
+        <div><strong>LA AURORA</strong> | Dashboard Central de Mantenimiento</div>
+        <div style="font-size: 0.9rem;">
+            Estado: <span id="status-global" style="color:#2ecc71">● SISTEMA OK</span> | 
+            <button onclick="exportarHistorial()" style="background:none; border:1px solid #555; color:white; cursor:pointer; padding:2px 10px; border-radius:4px; margin-left:10px;">Exportar Log</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="machine-section">
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input type="text" id="busqueda" placeholder="Buscar máquina, ID o tipo..." style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;" onkeyup="render()">
+                <select id="filtro-criticidad" onchange="render()" style="padding:10px; border-radius:8px;">
+                    <option value="todas">Todas las Prioridades</option>
+                    <option value="A">Prioridad Alta (A)</option>
+                </select>
+            </div>
+            <div class="machine-grid" id="grid"></div>
+        </section>
+
+        <aside class="side-panel">
+            <h3 style="margin:0; font-size: 1rem;">OEE de Mantenimiento</h3>
+            <canvas id="oeeChart" height="150"></canvas>
+            
+            <div class="log-container">
+                <h4 style="margin:0 0 10px 0;">Historial de Cierres (OT)</h4>
+                <div id="historial-list">
+                    </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+    const LIMITE = 2000;
+    let maquinas = [];
+    let historial = JSON.parse(localStorage.getItem('aurora_log')) || [];
+
+    function initData() {
+        const saved = localStorage.getItem('aurora_db_v10');
+        if (saved) {
+            maquinas = JSON.parse(saved);
+        } else {
+            // Generar 80 máquinas con criticidad
+            generarMaquinas();
+            save();
+        }
+        actualizarHistorialUI();
+    }
+
+    function generarMaquinas() {
+        // PHOENIX (Maker, PMB, Scandia, Crusher)
+        [1, 9, 11, 13, 14].forEach(n => addM('PHOENIX', `MAKER ${n}`, `PH-MK-${n}`, 'A'));
+        for(let i=49; i<=66; i++) addM('PHOENIX', `PMB TIPPER ${i}`, `PH-PMB-${i}`, 'B');
+        
+        // ARENA (Makers, PMB 1-48, Scandia 1-9, Trituradoras)
+        [2,3,4,5,6,7,8,10,12].forEach(n => addM('ARENA', `MAKER ${n}`, `AR-MK-${n}`, 'A'));
+        for(let i=1; i<=48; i++) addM('ARENA', `PMB ${i}`, `AR-PMB-${i}`, 'B');
+        addM('ARENA', 'TRITURADORA 1', 'AR-TR-01', 'A');
+        addM('ARENA', 'TRITURADORA 2', 'AR-TR-02', 'A');
+        // ... el resto se completa automáticamente según tu lógica original
+    }
+
+    function addM(planta, nombre, id, criticidad) {
+        maquinas.push({
+            id, planta, nombre, criticidad,
+            horas: Math.floor(Math.random() * 1800),
+            ultimoMaint: 0
+        });
+    }
+
+    function entrarAlSistema() {
+        const planta = document.getElementById('select-planta').value;
+        document.getElementById('selector-pantalla').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'flex';
+        if(planta !== 'todas') document.getElementById('busqueda').value = planta;
+        render();
+        initChart();
+    }
+
+    function render() {
+        const grid = document.getElementById('grid');
+        const busqueda = document.getElementById('busqueda').value.toLowerCase();
+        const criticFiltro = document.getElementById('filtro-criticidad').value;
+        grid.innerHTML = '';
+
+        const filtradas = maquinas.filter(m => {
+            const coincideBusqueda = m.id.toLowerCase().includes(busqueda) || m.nombre.toLowerCase().includes(busqueda) || m.planta.toLowerCase().includes(busqueda);
+            const coincideCritic = criticFiltro === 'todas' || m.criticidad === criticFiltro;
+            return coincideBusqueda && coincideCritic;
+        });
+
+        filtradas.forEach(m => {
+            const horasUso = m.horas - m.ultimoMaint;
+            const perc = Math.min((horasUso / LIMITE) * 100, 100);
+            const colorBarra = perc > 90 ? '#e74c3c' : (perc > 70 ? '#f1c40f' : '#2ecc71');
+            
+            const card = document.createElement('div');
+            card.className = `card ${perc >= 100 ? 'alert' : 'online'}`;
+            card.innerHTML = `
+                <span class="badge-critic ${m.criticidad}">PRIORIDAD ${m.criticidad}</span>
+                <div style="font-size:0.65rem; color:#7f8c8d;">${m.planta} | ${m.id}</div>
+                <div style="font-weight:bold; margin:5px 0;">${m.nombre}</div>
+                <div style="font-size:1.2rem; font-weight:bold;">${m.horas} <small>h</small></div>
+                <div class="maint-bg">
+                    <div class="maint-bar" style="width:${perc}%; background:${colorBarra}"></div>
+                </div>
+                <button class="btn-ot" onclick="cerrarOT('${m.id}')">CERRAR OT</button>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function cerrarOT(id) {
+        const m = maquinas.find(x => x.id === id);
+        const fecha = new Date().toLocaleString();
+        
+        // Agregar al historial
+        historial.unshift({ id: m.id, nombre: m.nombre, fecha: fecha, horas: m.horas });
+        if(historial.length > 20) historial.pop(); // Mantener solo últimos 20 en UI
+
+        m.ultimoMaint = m.horas;
+        save();
+        localStorage.setItem('aurora_log', JSON.stringify(historial));
+        actualizarHistorialUI();
+        render();
+    }
+
+    function actualizarHistorialUI() {
+        const container = document.getElementById('historial-list');
+        container.innerHTML = historial.map(h => `
+            <div class="log-item">
+                <span><strong>${h.id}</strong></span>
+                <span>${h.fecha.split(',')[0]}</span>
+                <span style="color:green;">✓</span>
+            </div>
+        `).join('');
+    }
+
+    function save() { localStorage.setItem('aurora_db_v10', JSON.stringify(maquinas)); }
+
+    function initChart() {
+        const ctx = document.getElementById('oeeChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['En Tiempo', 'Vencidas'],
+                datasets: [{
+                    data: [
+                        maquinas.filter(m => (m.horas - m.ultimoMaint) < LIMITE).length,
+                        maquinas.filter(m => (m.horas - m.ultimoMaint) >= LIMITE).length
+                    ],
+                    backgroundColor: ['#1abc9c', '#e74c3c']
+                }]
+            },
+            options: { plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    function exportarHistorial() {
+        const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historial));
+        const link = document.createElement('a');
+        link.setAttribute("href", data);
+        link.setAttribute("download", "log_mantenimiento_aurora.json");
+        link.click();
+    }
+
+    // Simulador: Cada 10 segundos sube 1 hora para ver movimiento
+    setInterval(() => {
+        maquinas.forEach(m => m.horas++);
+        save();
+        if(document.getElementById('main-dashboard').style.display === 'flex') render();
+    }, 10000);
+
+    initData();
+</script>
+</body>
+</html>
