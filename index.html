@@ -3,318 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CMMS PRO - La Aurora v10.2</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>AURORA CMMS PRO - V6.2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #f4f7f6;
-            --dark-card: #1e1e1e; 
+            --bg: #f0f4f7;
+            --sidebar: #1a252f;
             --aurora-red: #e74c3c;
+            --aurora-orange: #f39c12;
             --aurora-green: #1abc9c;
-            --aurora-blue: #3498db;
-        }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); height: 100vh; overflow: hidden; }
-
-       /* --- PANTALLA INICIAL CON IMAGEN CORREGIDA --- */
-#selector-pantalla {
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100vw; /* Usamos vw para asegurar el ancho total del visor */
-    height: 100vh; /* Usamos vh para asegurar el alto total del visor */
-    
-    /* Fondo de color oscuro de respaldo mientras carga la imagen */
-    background-color: #1a1a1a; 
-
-    /* URL corregida para acceso directo desde GitHub */
-    background-image: url('https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS/blob/main/mantto.png?raw=true'); 
-    
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    z-index: 2000;
-}
-        /* CAPA OSCURA (OVERLAY) PARA LEGIBILIDAD */
-        #selector-pantalla::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); /* Oscurece la imagen un 70% */
-            z-index: 1;
+            --dimo-blue: #3498db;
+            --text-light: #ecf0f1;
         }
 
-        .login-card {
-            background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); /* Efecto vidrio esmerilado */
-            padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);
-            width: 400px; color: white; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            z-index: 10; /* Se asegura de estar sobre la capa oscura */
-            position: relative;
-        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; overflow: hidden; }
 
-        /* --- EL RESTO DEL CSS SIGUE IGUAL --- */
-        #main-dashboard { display: none; height: 100vh; flex-direction: column; }
-        header { background: #1a252f; color: white; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .container { display: grid; grid-template-columns: 3.5fr 1.2fr; gap: 15px; padding: 15px; height: calc(100vh - 65px); box-sizing: border-box; }
-        .machine-section { overflow-y: auto; background: white; border-radius: 12px; padding: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
-        .machine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-        .card { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 12px; position: relative; transition: transform 0.2s; border-top: 5px solid #ccc; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-        .card.online { border-top-color: var(--aurora-green); }
-        .card.alert { border-top-color: var(--aurora-red); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
-        .badge-critic { position: absolute; top: 8px; right: 8px; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; background: #eee; }
-        .badge-critic.A { background: #ffeaa7; color: #d35400; font-weight: bold; }
-        .maint-bg { background: #f0f0f0; height: 10px; border-radius: 5px; margin: 12px 0; position: relative; }
-        .maint-bar { height: 100%; border-radius: 5px; transition: width 0.5s ease-in-out; }
-        .side-panel { background: white; padding: 15px; border-radius: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .log-container { font-size: 0.8rem; flex: 1; border-top: 1px solid #eee; padding-top: 10px; }
-        .log-item { padding: 5px; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
-        .btn-ot { width: 100%; background: #34495e; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-ot:hover { background: var(--aurora-blue); }
-        .btn-nav { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; cursor: pointer; padding: 5px 12px; border-radius: 4px; font-size: 0.8rem; margin-right: 15px; }
-        .btn-nav:hover { background: rgba(255,255,255,0.2); }
+        /* --- LOGIN --- */
+        #selector-pantalla {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS/blob/main/mantto.png?raw=true');
+            background-size: cover; display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-card { background: #2d2823; padding: 40px; border-radius: 30px; width: 380px; text-align: center; color: white; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .logo-login { background: white; width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .logo-login img { width: 238%; }
+        .login-input { width: 100%; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: none; text-align: center; font-weight: bold; box-sizing: border-box; }
+        .btn-login { width: 100%; padding: 15px; background: var(--aurora-green); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        /* --- SIDEBAR --- */
+        #sidebar { width: 260px; background: var(--sidebar); color: var(--text-light); display: none; flex-direction: column; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo { width: 162px; height: 162px; background: white; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--aurora-green); overflow: hidden; }
+        .sidebar-logo img { width: 100%; }
+        .nav-menu { flex: 1; padding: 15px 0; }
+        .nav-item { padding: 15px 20px; display: flex; align-items: center; color: rgba(255,255,255,0.6); cursor: pointer; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { background: #2c3e50; color: white; border-left: 4px solid var(--aurora-green); }
+        .nav-item i { width: 30px; font-size: 1.1rem; }
+
+        /* --- MAIN CONTENT --- */
+        #main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .view-section { display: none; padding: 20px; overflow-y: auto; height: 100%; }
+        .view-section.active { display: block; }
+        
+        .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; }
+        .stat-value { font-size: 2.2rem; font-weight: 800; display: block; }
+
+        .machine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; padding-bottom: 30px; }
+        
+        /* TARJETA */
+        .card { 
+            background: white; border-radius: 10px; padding: 15px; 
+            border-top: 5px solid var(--aurora-green); text-align: center; 
+            cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.05); 
+            transition: 0.2s; position: relative;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        .card.warning { border-top-color: var(--aurora-orange); }
+        .card.alert { animation: blink-red 0.8s infinite; border-top-width: 8px; font-weight: bold; }
+        @keyframes blink-red { 0%, 100% { background: #fff; border-top-color: var(--aurora-red); } 50% { background: #ffebeb; border-top-color: #c0392b; } }
+
+        /* --- MODAL --- */
+        #modal-ot { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 350px; }
     </style>
 </head>
 <body>
 
 <div id="selector-pantalla">
     <div class="login-card">
-        <h1 style="margin:0; letter-spacing: 2px;">AURORA CMMS</h1>
-        <p style="color: #1abc9c; font-weight: bold; margin-bottom: 30px;">GESTIÓN DE ACTIVOS</p>
-        
-        <div style="text-align: center; margin-bottom: 20px;">
-            <label style="font-size: 0.7rem; color: #ccc; display: block; margin-bottom: 5px;">SELECCIONAR ÁREA DE TRABAJO</label>
-            <select id="select-planta" style="
-                width: 100%; 
-                padding: 12px; 
-                border-radius: 8px; 
-                border: none; 
-                outline: none; 
-                text-align: center;      /* Centra en la lista */
-                text-align-last: center; /* Centra el seleccionado */
-                background-color: white; 
-                cursor: pointer;
-            ">
-                <option value="todas">VISTA GLOBAL</option>
-                <option value="PHOENIX">PHOENIX</option>
-                <option value="ARENA">ARENA</option>
-            </select>
-        </div>
-
-        <button class="btn-ot" style="padding:15px; background: var(--aurora-green);" onclick="entrarAlSistema()">INICIAR MONITOREO</button>
+        <div class="logo-login"><img src="https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS/blob/main/La%20Aurora%20CMMS.png?raw=true"></div>
+        <h2>AURORA CMMS</h2>
+        <select id="select-nave" class="login-input">
+            <option value="GLOBAL">ACCESO GLOBAL</option>
+            <option value="ARENA">ARENA</option>
+            <option value="PHOENIX">PHOENIX</option>
+        </select>
+        <input type="password" id="pass" placeholder="PASSWORD" class="login-input">
+        <button onclick="entrar()" class="btn-login">ENTRAR AL PANEL</button>
     </div>
 </div>
 
-<div id="main-dashboard">
-    <header>
-        <div style="display:flex; align-items:center;">
-            <button class="btn-nav" onclick="volverAlSelector()">← Cambiar Planta</button>
-            <strong>LA AURORA</strong> | Dashboard
-        </div>
-        <div style="font-size: 0.9rem;">
-            Estado: <span id="status-global" style="color:#2ecc71">● SISTEMA OK</span>
-            <button onclick="exportarHistorial()" style="background:none; border:1px solid #555; color:white; cursor:pointer; padding:2px 10px; border-radius:4px; margin-left:10px;">Exportar</button>
-        </div>
-    </header>
+<nav id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo"><img src="https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS/blob/main/La%20Aurora.png?raw=true"></div>
+        <strong>AURORA PRO</strong>
+        <div id="clock" style="color:var(--aurora-green); font-size: 0.8rem; margin-top:5px;">00:00:00</div>
+    </div>
+    <div class="nav-menu">
+        <div class="nav-item active" onclick="showSection('dash')"><i class="fas fa-desktop"></i> Dashboard</div>
+        <div class="nav-item" onclick="showSection('stats')"><i class="fas fa-chart-bar"></i> Estadísticas</div>
+        <div class="nav-item" onclick="showSection('historial')"><i class="fas fa-history"></i> Historial</div>
+    </div>
+    <div style="padding: 15px;">
+        <button class="btn-login" style="margin-bottom:10px; width:100%; font-size: 0.8rem; background: var(--dimo-blue);" onclick="exportarExcel()">
+            <i class="fas fa-file-excel"></i> REPORTE EXCEL
+        </button>
+        <button class="btn-login" style="width:100%; font-size: 0.8rem; background: var(--aurora-red);" onclick="cerrarSesion()">
+            <i class="fas fa-power-off"></i> CERRAR SESIÓN
+        </button>
+    </div>
+</nav>
 
-    <div class="container">
-        <section class="machine-section">
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <input type="text" id="busqueda" placeholder="Buscar máquina..." style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;" onkeyup="render()">
-                <select id="filtro-criticidad" onchange="render()" style="padding:10px; border-radius:8px; border:1px solid #ddd;">
-                    <option value="todas">Todas</option>
-                    <option value="A">Prioridad A</option>
-                    <option value="B">Prioridad B</option>
-                </select>
-            </div>
-            <div class="machine-grid" id="grid"></div>
-        </section>
+<div id="main-content">
+    <div id="section-dash" class="view-section active">
+        <div class="stats-container">
+            <div class="stat-box" onclick="render('good')"><span id="count-good" class="stat-value">0</span><span>OK</span></div>
+            <div class="stat-box" onclick="render('warning')"><span id="count-warning" class="stat-value">0</span><span>50%</span></div>
+            <div class="stat-box" onclick="render('danger')"><span id="count-danger" class="stat-value" style="color:var(--aurora-red)">0</span><span>OT</span></div>
+        </div>
+        <div id="master-container"></div>
+    </div>
+    <div id="section-stats" class="view-section"><h2>Análisis de Rendimiento</h2></div>
+    <div id="section-historial" class="view-section"><h2>Historial de Actividades</h2></div>
+</div>
 
-        <aside class="side-panel">
-            <h3 style="margin:0; font-size: 1rem; color:#2c3e50;">Resumen Preventivo</h3>
-            <canvas id="oeeChart" height="150"></canvas>
-            <div class="log-container">
-                <h4 style="margin:0 0 10px 0;">Historial de Cierres</h4>
-                <div id="historial-list"></div>
-            </div>
-        </aside>
+<div id="modal-ot">
+    <div class="modal-content">
+        <h2 id="ot-name" style="color:var(--aurora-red); margin:0;">EQUIPO</h2>
+        <p>Confirmación de Cierre Técnico</p>
+        <input type="password" id="pass-ot" placeholder="CLAVE" class="login-input" style="border:1px solid #ccc">
+        <button class="btn-login" onclick="ejecutarCierre()">CULMINAR MANTENIMIENTO</button>
+        <button class="btn-login" style="background:#ddd; color:#333; margin-top:8px;" onclick="cerrarModal()">CANCELAR</button>
     </div>
 </div>
 
 <script>
-    // --- LA LÓGICA DE JAVASCRIPT SIGUE IGUAL (OMITIDA AQUÍ PARA BREVEDAD, USA LA DE LA VERSIÓN ANTERIOR) ---
-    // (Asegúrate de copiar todas las funciones: initData, generarBaseDeDatos, entrarAlSistema, volverAlSelector, render, cerrarOT, etc. de tu código actual)
-    const LIMITE = 2000;
     let maquinas = [];
-    let historial = JSON.parse(localStorage.getItem('aurora_log')) || [];
-    let chartInstance = null;
+    let seleccionado = null;
+
+    function entrar() {
+        if(document.getElementById('pass').value === "21705") {
+            document.getElementById('selector-pantalla').style.display = 'none';
+            document.getElementById('sidebar').style.display = 'flex';
+            initData();
+            render('all');
+        } else { alert("Clave incorrecta"); }
+    }
+
+    function cerrarSesion() {
+        document.getElementById('selector-pantalla').style.display = 'flex';
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('pass').value = '';
+    }
 
     function initData() {
-        const saved = localStorage.getItem('aurora_db_v10');
-        if (saved) {
-            maquinas = JSON.parse(saved);
-        } else {
-            generarBaseDeDatos();
-            save();
+        maquinas = [];
+        // ARENA
+        for(let i=1; i<=48; i++) maquinas.push({id: `PMB-${i}`, nave: 'ARENA', h: Math.floor(Math.random()*2100)});
+        for(let i=67; i<=75; i++) maquinas.push({id: `PMB-${i}`, nave: 'ARENA', h: Math.floor(Math.random()*2100)});
+        maquinas.push({id: 'COMBINER-1', nave: 'ARENA', h: 2050}, {id: 'COMBINER-2', nave: 'ARENA', h: 400});
+        for(let i=1; i<=9; i++) maquinas.push({id: `SCANDIA-${i}`, nave: 'ARENA', h: Math.floor(Math.random()*2500)});
+        ['A','B','C','D','F','K'].forEach(l => maquinas.push({id: `SCANDIA-${l}`, nave: 'ARENA', h: Math.floor(Math.random()*2500)}));
+
+        // PHOENIX
+        for(let i=49; i<=66; i++) maquinas.push({id: `PMB-${i}`, nave: 'PHOENIX', h: Math.floor(Math.random()*2500)});
+        ['H','G','E','I','J','L'].forEach(l => maquinas.push({id: `SCAN-${l}`, nave: 'PHOENIX', h: Math.floor(Math.random()*2500)}));
+        maquinas.push({id: `COMBINER-3`, nave: 'PHOENIX', h: Math.floor(Math.random()*2500)});
+        maquinas.push({id: `TRIT-3`, nave: 'PHOENIX', h: Math.floor(Math.random()*2500)});
+    }
+
+    /* DELEGACIÓN DE EVENTOS PARA MÁQUINAS EN ROJO */
+    document.getElementById('master-container').addEventListener('click', function(e) {
+        const card = e.target.closest('.card');
+        if (card) {
+            const id = card.getAttribute('data-id');
+            const m = maquinas.find(x => x.id === id);
+            if (m && m.h >= 2000) {
+                seleccionado = m;
+                document.getElementById('ot-name').innerText = m.id;
+                document.getElementById('modal-ot').style.display = 'flex';
+            }
         }
-        actualizarHistorialUI();
-    }
+    });
 
-    function generarBaseDeDatos() {
-        // NAVE PHOENIX
-        [1, 9, 11, 13, 14].forEach(n => addM('PHOENIX', `MAKER ${n}`, `PH-MK-${n}`, 'A'));
-        for(let i=49; i<=66; i++) addM('PHOENIX', `PMB TIPPER ${i}`, `PH-PMB-${i}`, 'B');
-        ['E','G','H','I','J','L'].forEach(l => addM('PHOENIX', `SCANDIA ${l}`, `PH-SCA-${l}`, 'B'));
-        addM('PHOENIX', 'ROD CRUSHER 1', 'PH-RC-01', 'A');
-
-        // NAVE ARENA
-        [2,3,4,5,6,7,8,10,12].forEach(n => addM('ARENA', `MAKER ${n}`, `AR-MK-${n}`, 'A'));
-        [1,2].forEach(n => addM('ARENA', `COMBINER ${n}`, `AR-CB-${n}`, 'A'));
-        for(let i=1; i<=48; i++) addM('ARENA', `PMB ${i}`, `AR-PMB-${i}`, 'B');
-        for(let i=1; i<=9; i++) addM('ARENA', `SCANDIA ${i}`, `AR-SCA-${i}`, 'B');
-        for(let i=1; i<=4; i++) addM('ARENA', `CRUSHER ${i}`, `AR-CR-${i}`, 'A');
-        addM('ARENA', 'TRITURADORA 1', 'AR-TR-01', 'A');
-        addM('ARENA', 'TRITURADORA 2', 'AR-TR-02', 'A');
-    }
-
-    function addM(planta, nombre, id, criticidad) {
-        maquinas.push({
-            id, planta, nombre, criticidad,
-            horas: Math.floor(Math.random() * 1900),
-            ultimoMaint: 0
-        });
-    }
-
-    function entrarAlSistema() {
-        const planta = document.getElementById('select-planta').value;
-        document.getElementById('selector-pantalla').style.display = 'none';
-        document.getElementById('main-dashboard').style.display = 'flex';
+    function render(filtro) {
+        const master = document.getElementById('master-container');
+        const naveSel = document.getElementById('select-nave').value;
+        master.innerHTML = '';
         
-        if(planta !== 'todas') {
-            document.getElementById('busqueda').value = planta;
-        } else {
-            document.getElementById('busqueda').value = '';
-        }
-        
-        render();
-        actualizarChart();
-    }
+        let counts = {good:0, warning:0, danger:0};
+        const naves = (naveSel === 'GLOBAL') ? ['ARENA', 'PHOENIX'] : [naveSel];
 
-    function volverAlSelector() {
-        document.getElementById('main-dashboard').style.display = 'none';
-        document.getElementById('selector-pantalla').style.display = 'flex';
-    }
+        naves.forEach(n => {
+            const mNave = maquinas.filter(m => m.nave === n);
+            mNave.forEach(m => {
+                if(m.h >= 2000) counts.danger++; 
+                else if(m.h >= 1000) counts.warning++; 
+                else counts.good++;
+            });
 
-    function render() {
-        const grid = document.getElementById('grid');
-        const busqueda = document.getElementById('busqueda').value.toLowerCase();
-        const criticFiltro = document.getElementById('filtro-criticidad').value;
-        grid.innerHTML = '';
+            const filtradas = (filtro === 'all') ? mNave : mNave.filter(m => 
+                (filtro === 'good' && m.h < 1000) || (filtro === 'warning' && m.h >= 1000 && m.h < 2000) || (filtro === 'danger' && m.h >= 2000)
+            );
 
-        const filtradas = maquinas.filter(m => {
-            const coincideBusqueda = m.id.toLowerCase().includes(busqueda) || 
-                                   m.nombre.toLowerCase().includes(busqueda) || 
-                                   m.planta.toLowerCase().includes(busqueda);
-            const coincideCritic = criticFiltro === 'todas' || m.criticidad === criticFiltro;
-            return coincideBusqueda && coincideCritic;
-        });
-
-        filtradas.forEach(m => {
-            const horasUso = m.horas - m.ultimoMaint;
-            const perc = Math.min((horasUso / LIMITE) * 100, 100);
-            const colorBarra = perc > 90 ? 'var(--aurora-red)' : (perc > 70 ? '#f1c40f' : 'var(--aurora-green)');
-            
-            const card = document.createElement('div');
-            card.className = `card ${perc >= 100 ? 'alert' : 'online'}`;
-            card.innerHTML = `
-                <span class="badge-critic ${m.criticidad}">PRIORIDAD ${m.criticidad}</span>
-                <div style="font-size:0.65rem; color:#7f8c8d; font-weight:bold;">${m.planta}</div>
-                <div style="font-weight:bold; margin:2px 0; color:#2c3e50;">${m.id}</div>
-                <div style="font-size:0.8rem; color:#34495e; margin-bottom:8px;">${m.nombre}</div>
-                <div style="font-size:1.4rem; font-weight:bold; color:#2c3e50;">${m.horas} <small style="font-size:0.7rem;">h</small></div>
-                <div class="maint-bg">
-                    <div class="maint-bar" style="width:${perc}%; background:${colorBarra}"></div>
-                </div>
-                <button class="btn-ot" onclick="cerrarOT('${m.id}')">CERRAR ORDEN</button>
-            `;
-            grid.appendChild(card);
-        });
-    }
-
-    function cerrarOT(id) {
-        const m = maquinas.find(x => x.id === id);
-        const fecha = new Date().toLocaleString('es-DO', { hour12: true });
-        
-        historial.unshift({ id: m.id, nombre: m.nombre, fecha: fecha, horas: m.horas });
-        if(historial.length > 20) historial.pop();
-
-        m.ultimoMaint = m.horas;
-        save();
-        localStorage.setItem('aurora_log', JSON.stringify(historial));
-        actualizarHistorialUI();
-        render();
-        actualizarChart();
-    }
-
-    function actualizarHistorialUI() {
-        const container = document.getElementById('historial-list');
-        container.innerHTML = historial.length > 0 ? 
-            historial.map(h => `
-                <div class="log-item">
-                    <span><strong>${h.id}</strong><br><small>${h.fecha.split(' ')[0]}</small></span>
-                    <span style="color:var(--aurora-green); font-weight:bold;">OK</span>
-                </div>
-            `).join('') : '<p style="font-size:0.7rem; color:#aaa;">No hay registros recientes.</p>';
-    }
-
-    function save() { localStorage.setItem('aurora_db_v10', JSON.stringify(maquinas)); }
-
-    function actualizarChart() {
-        const ctx = document.getElementById('oeeChart').getContext('2d');
-        const vencidas = maquinas.filter(m => (m.horas - m.ultimoMaint) >= LIMITE).length;
-        const alDia = maquinas.length - vencidas;
-
-        if (chartInstance) chartInstance.destroy();
-
-        chartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Al día', 'Mantenimiento'],
-                datasets: [{
-                    data: [alDia, vencidas],
-                    backgroundColor: ['#1abc9c', '#e74c3c'],
-                    borderWidth: 0
-                }]
-            },
-            options: { 
-                cutout: '70%',
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } 
+            if(filtradas.length > 0) {
+                const head = document.createElement('div');
+                head.innerHTML = `<div style="background:#fff; padding:10px; border-left:5px solid var(--dimo-blue); margin:15px 0; font-weight:bold; border-radius:5px;">NAVE: ${n}</div>`;
+                const grid = document.createElement('div');
+                grid.className = 'machine-grid';
+                filtradas.forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = `card ${m.h >= 2000 ? 'alert' : (m.h >= 1000 ? 'warning' : '')}`;
+                    card.setAttribute('data-id', m.id);
+                    card.innerHTML = `<strong>${m.id}</strong><br><small>${m.h} hrs</small>`;
+                    grid.appendChild(card);
+                });
+                head.appendChild(grid);
+                master.appendChild(head);
             }
         });
+        document.getElementById('count-good').innerText = counts.good;
+        document.getElementById('count-warning').innerText = counts.warning;
+        document.getElementById('count-danger').innerText = counts.danger;
     }
 
-    function exportarHistorial() {
-        const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historial, null, 2));
-        const link = document.createElement('a');
-        link.setAttribute("href", data);
-        link.setAttribute("download", `historial_mantenimiento_${new Date().toLocaleDateString()}.json`);
-        link.click();
+    function ejecutarCierre() {
+        if(document.getElementById('pass-ot').value === "1903") {
+            const m = seleccionado;
+            
+            // Cuerpo del correo formal
+            const asunto = `MANTENIMIENTO PREVENTIVO EXITOSA - ${m.id}`;
+            const cuerpoMail = `Estimados Gerentes, Directores y Equipo de Operaciones:\n\nPor medio del presente, el departamento de Mantenimiento les informa que se ha completado con éxito el Mantenimiento Preventivo programado para la siguiente unidad:\nSe confirma que el Mantenimiento Preventivo de la Máquina ${m.id} ha CULMINADO EXITOSAMENTE.\n\nEquipo:${m.id}\nUbicación:${m.nave}\nEstado: Operativo 100%\nHoras Reseteadas: 0\n\nResultados de la Intervención:
+
+1. Se realizaron todas las tareas de inspección, lubricación y ajustes técnicos según el protocolo de seguridad.
+2. El equipo ha sido sometido a pruebas de funcionamiento en vacío, respondiendo de manera satisfactoria y cumpliendo con los estándares de calidad requeridos.
+3. El contador de horas ha sido reiniciado en el sistema CMMS PRO para el inicio del nuevo ciclo.
+
+A partir de este momento, la máquina queda a disposición del equipo de producción para retomar sus labores habituales de forma segura y eficiente.
+
+Agradecemos la coordinación previa para permitir esta ventana de mantenimiento, la cual asegura la confiabilidad de nuestros procesos industriales.
+
+Atentamente,
+
+[Firma Jedrik Peña]
+Departamento de Mantenimiento
+Aurora CMMS PRO,.`;
+            
+            // MÉTODO MODERNO: Abre el cliente de correo en una ventana/pestaña nueva (_blank)
+            const mailtoUrl = `mailto:Humberto1988hudl@gmail.com?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpoMail)}`;
+            window.open(mailtoUrl, '_blank');
+            
+            // Reset de horas en el sistema
+            m.h = 0;
+
+            // Mensaje de Excelencia
+            alert(`🌟 EXCELENTE TRABAJO TÉCNICO 🌟\n\nLa culminación del mantenimiento preventivo del equipo ${m.id} ha sido exitosa.\n\nEl sistema ha reseteado las horas y notificado a gerencia.`);
+
+            cerrarModal();
+            render('all');
+        } else { 
+            
+            alert("❌ Clave técnica incorrecta."); }
     }
 
-    setInterval(() => {
-        maquinas.forEach(m => m.horas++);
-        save();
-        if(document.getElementById('main-dashboard').style.display === 'flex') {
-            render();
-            actualizarChart();
-        }
-    }, 60000);
+    function showSection(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('section-' + id).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
 
-    initData();
+    function cerrarModal() { document.getElementById('modal-ot').style.display = 'none'; document.getElementById('pass-ot').value = ''; }
+    function exportarExcel() { const ws = XLSX.utils.json_to_sheet(maquinas); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "Reporte_Aurora.xlsx"); }
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
 </script>
 </body>
 </html>
