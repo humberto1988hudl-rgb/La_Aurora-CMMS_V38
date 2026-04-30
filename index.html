@@ -1,273 +1,1129 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURORA CMMS PRO - V6.2</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg: #f0f4f7;
-            --sidebar: #1a252f;
-            --aurora-red: #e74c3c;
-            --aurora-orange: #f39c12;
-            --aurora-green: #1abc9c;
-            --dimo-blue: #3498db;
-            --text-light: #ecf0f1;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURORA CMMS PRO — V74</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1e293b;font-size:14px}
 
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; overflow: hidden; }
+    /* ===== LOGIN ===== */
+    #login-screen{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999}
+    .login-box{background:white;padding:38px 34px;border-radius:20px;width:310px;text-align:center}
+    .login-logo{width:78px;height:78px;border-radius:50%;background:#0f172a;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;border:3px solid #2dd4bf;font-size:26px;color:#2dd4bf;font-weight:900}
+    .login-box h2{color:#1e293b;font-size:1rem;margin-bottom:18px;letter-spacing:2px;font-weight:800}
+    .login-box input{width:100%;padding:13px;text-align:center;border:2px solid #e2e8f0;border-radius:10px;font-size:1.3rem;letter-spacing:6px;outline:none;transition:.2s}
+    .login-box input:focus{border-color:#2dd4bf}
+    .login-box button{width:100%;padding:13px;margin-top:12px;background:#0f172a;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:800;font-size:0.85rem;letter-spacing:1px;transition:.2s}
+    .login-box button:hover{background:#1e3a5f}
+    .login-hint{margin-top:10px;font-size:0.7rem;color:#94a3b8}
 
-        /* --- LOGIN --- */
-        #selector-pantalla {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS/blob/main/mantto.png?raw=true');
-            background-size: cover; display: flex; justify-content: center; align-items: center; z-index: 9999;
-        }
-        .login-card { background: #2d2823; padding: 40px; border-radius: 30px; width: 380px; text-align: center; color: white; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .logo-login { background: white; width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .logo-login img { width: 238%; }
-        .login-input { width: 100%; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: none; text-align: center; font-weight: bold; box-sizing: border-box; }
-        .btn-login { width: 100%; padding: 15px; background: var(--aurora-green); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    /* ===== LAYOUT ===== */
+    #app{display:none;flex-direction:row;height:100vh}
+    #sidebar{width:215px;min-width:215px;background:#0f172a;color:white;display:flex;flex-direction:column;overflow-y:auto}
+    #main{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;background:#f0f4f8}
 
-        /* --- SIDEBAR --- */
-        #sidebar { width: 260px; background: var(--sidebar); color: var(--text-light); display: none; flex-direction: column; }
-        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-logo { width: 162px; height: 162px; background: white; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--aurora-green); overflow: hidden; }
-        .sidebar-logo img { width: 100%; }
-        .nav-menu { flex: 1; padding: 15px 0; }
-        .nav-item { padding: 15px 20px; display: flex; align-items: center; color: rgba(255,255,255,0.6); cursor: pointer; transition: 0.3s; }
-        .nav-item:hover, .nav-item.active { background: #2c3e50; color: white; border-left: 4px solid var(--aurora-green); }
-        .nav-item i { width: 30px; font-size: 1.1rem; }
+    /* ===== SIDEBAR ===== */
+    .sb-top{padding:18px 16px 14px;border-bottom:1px solid #1e3a5f}
+    .sb-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .sb-icon{width:42px;height:42px;border-radius:50%;background:#1e3a5f;display:flex;align-items:center;justify-content:center;font-weight:900;color:#2dd4bf;font-size:15px;flex-shrink:0}
+    .sb-name{font-size:0.82rem;font-weight:700;color:white;letter-spacing:.5px}
+    .sb-role{font-size:0.65rem;color:#2dd4bf;font-family:monospace}
+    .sb-clock{font-family:monospace;font-size:0.75rem;color:#475569;text-align:center;padding:8px 12px;background:#080e1a}
+    .sb-turn{display:flex;gap:6px;margin-top:8px}
+    .sb-turn button{flex:1;padding:5px 2px;border:1px solid #334155;background:none;color:#64748b;border-radius:5px;cursor:pointer;font-size:0.62rem;font-weight:700;transition:.2s}
+    .sb-turn button.active-turn{background:#2dd4bf;color:#0f172a;border-color:#2dd4bf}
+    .nav-group{padding:12px 16px 3px;font-size:0.58rem;color:#475569;text-transform:uppercase;font-weight:800;letter-spacing:1px}
+    .nav-item{padding:10px 16px;display:flex;align-items:center;gap:9px;color:#94a3b8;cursor:pointer;transition:.15s;font-size:0.8rem;border-left:3px solid transparent;position:relative}
+    .nav-item:hover,.nav-item.active{background:#1e293b;color:white;border-left-color:#2dd4bf}
+    .nav-badge{background:#ef4444;color:white;border-radius:10px;padding:1px 6px;font-size:0.6rem;font-weight:800;position:absolute;right:12px}
+    .sb-footer{margin-top:auto;padding:14px}
+    .btn-salir{width:100%;padding:10px;background:#7f1d1d;color:white;border:none;border-radius:7px;cursor:pointer;font-weight:800;font-size:0.75rem;letter-spacing:1px}
+    .btn-salir:hover{background:#991b1b}
 
-        /* --- MAIN CONTENT --- */
-        #main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .view-section { display: none; padding: 20px; overflow-y: auto; height: 100%; }
-        .view-section.active { display: block; }
-        
-        .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-        .stat-box { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; }
-        .stat-value { font-size: 2.2rem; font-weight: 800; display: block; }
+    /* ===== VISTAS ===== */
+    .view{display:none;flex-direction:column;gap:16px}
+    .view.active{display:flex}
+    .page-title{font-size:0.68rem;font-weight:800;color:#2dd4bf;text-transform:uppercase;letter-spacing:2px;border-left:4px solid #2dd4bf;padding-left:10px}
 
-        .machine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; padding-bottom: 30px; }
-        
-        /* TARJETA */
-        .card { 
-            background: white; border-radius: 10px; padding: 15px; 
-            border-top: 5px solid var(--aurora-green); text-align: center; 
-            cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.05); 
-            transition: 0.2s; position: relative;
-        }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-        .card.warning { border-top-color: var(--aurora-orange); }
-        .card.alert { animation: blink-red 0.8s infinite; border-top-width: 8px; font-weight: bold; }
-        @keyframes blink-red { 0%, 100% { background: #fff; border-top-color: var(--aurora-red); } 50% { background: #ffebeb; border-top-color: #c0392b; } }
+    /* ===== CARDS RESUMEN ===== */
+    .summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .sum-card{background:white;padding:16px;border-radius:10px;border:1px solid #e2e8f0;border-bottom:4px solid #e2e8f0;text-align:center}
+    .sum-card h1{font-size:1.9rem;font-weight:900;margin-bottom:3px}
+    .sum-card p{font-size:0.6rem;font-weight:800;color:#64748b;letter-spacing:1px;text-transform:uppercase}
+    .sum-card.ok{border-bottom-color:#2dd4bf}.sum-card.ok h1{color:#0f766e}
+    .sum-card.prev{border-bottom-color:#f59e0b}.sum-card.prev h1{color:#b45309}
+    .sum-card.ot{border-bottom-color:#ef4444}.sum-card.ot h1{color:#b91c1c}
+    .sum-card.kpi{border-bottom-color:#8b5cf6}.sum-card.kpi h1{color:#6d28d9}
 
-        /* --- MODAL --- */
-        #modal-ot { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 350px; }
-    </style>
+    /* ===== GRID MÁQUINAS ===== */
+    .machine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:8px}
+    .pmb-card{background:white;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;cursor:pointer;transition:.2s}
+    .pmb-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+    .pmb-head{height:4px;background:#2dd4bf}
+    .pmb-body{padding:8px;text-align:center}
+    .pmb-body h4{font-size:0.75rem;margin-bottom:1px;color:#1e293b;font-weight:700}
+    .pmb-body span{font-size:0.65rem;color:#64748b}
+    .pmb-footer{display:flex;justify-content:space-between;padding:4px 7px;background:#f8fafc;font-size:0.58rem;font-weight:700;color:#94a3b8;border-top:1px solid #f1f5f9}
+    .pmb-card.mtto{border-color:#fca5a5;animation:pulse-red 1.5s infinite}
+    .pmb-card.mtto .pmb-head{background:#ef4444}
+    .pmb-card.prev-due{border-color:#fde68a}
+    .pmb-card.prev-due .pmb-head{background:#f59e0b}
+    @keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.65}}
+
+    /* ===== TARJETAS GENÉRICAS ===== */
+    .card{background:white;padding:20px;border-radius:12px;border:1px solid #e2e8f0}
+    .card h3{font-size:0.75rem;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f1f5f9}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+    /* ===== FORMULARIOS ===== */
+    .field{margin-bottom:10px}
+    .field label{display:block;font-size:0.62rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:7px;font-size:0.85rem;outline:none;transition:.2s;font-family:inherit}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:#2dd4bf}
+    .field textarea{resize:vertical;min-height:70px}
+
+    /* ===== BOTONES ===== */
+    .btn-row{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:9px 16px;border:none;border-radius:7px;cursor:pointer;font-size:0.75rem;font-weight:800;transition:.2s;letter-spacing:.5px}
+    .btn:active{transform:translateY(1px)}
+    .btn-p{background:#0f172a;color:white}.btn-p:hover{background:#1e3a5f}
+    .btn-g{background:#0f766e;color:white}.btn-g:hover{background:#0d9488}
+    .btn-a{background:#b45309;color:white}.btn-a:hover{background:#d97706}
+    .btn-s{background:#475569;color:white}.btn-s:hover{background:#334155}
+    .btn-r{background:#b91c1c;color:white}.btn-r:hover{background:#dc2626}
+    .btn-o{background:white;border:1px solid #ef4444;color:#b91c1c}.btn-o:hover{background:#fef2f2}
+    .btn-export{background:#166534;color:white;padding:8px 14px;border:none;border-radius:7px;cursor:pointer;font-size:0.72rem;font-weight:800}
+
+    /* ===== RESULTADOS CALCULADORAS ===== */
+    .result-box{margin-top:12px;padding:13px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;display:none}
+    .result-box h4{font-size:0.65rem;font-weight:800;color:#0369a1;margin-bottom:9px;text-transform:uppercase}
+    .res-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #e0f2fe;font-size:0.82rem}
+    .res-row:last-child{border-bottom:none}
+    .res-val{font-weight:700;color:#0f172a}
+    .kpi-box{background:#0f172a;color:#2dd4bf;padding:12px;border-radius:8px;margin-top:10px;text-align:center;font-size:1rem;font-weight:800}
+
+    /* ===== TABLA OTs ===== */
+    .ot-table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:0.78rem}
+    thead{background:#f1f5f9}
+    th{padding:10px 12px;text-align:left;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#475569;white-space:nowrap}
+    td{padding:9px 12px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top}
+    tbody tr:hover{background:#f8fafc}
+    .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+    .badge-open{background:#fef3c7;color:#92400e}
+    .badge-prog{background:#dbeafe;color:#1e40af}
+    .badge-done{background:#dcfce7;color:#166534}
+    .badge-cancel{background:#f1f5f9;color:#475569}
+
+    /* ===== BÚSQUEDAS Y FILTROS ===== */
+    .search-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+    .search-input{flex:1;padding:10px 13px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.85rem;outline:none;transition:.2s}
+    .search-input:focus{border-color:#2dd4bf}
+    .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .filter-btn{padding:5px 12px;border:1px solid #e2e8f0;background:white;border-radius:20px;cursor:pointer;font-size:0.7rem;font-weight:700;color:#475569;transition:.2s}
+    .filter-btn:hover,.filter-btn.active{background:#0f172a;color:white;border-color:#0f172a}
+
+    /* ===== PLAN PREVENTIVO ===== */
+    .prev-table-head{display:grid;grid-template-columns:80px 1fr 90px 90px 90px;background:#f1f5f9;padding:9px 12px;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#475569;border-radius:8px 8px 0 0}
+    .prev-table-row{display:grid;grid-template-columns:80px 1fr 90px 90px 90px;border-bottom:1px solid #f1f5f9;align-items:center;padding:8px 12px;font-size:0.78rem}
+    .prev-table-row:hover{background:#f8fafc}
+
+    /* ===== BARRAS KPI ===== */
+    .oee-bar-wrap{background:#f1f5f9;border-radius:6px;height:12px;overflow:hidden;margin:5px 0 2px}
+    .oee-bar{height:100%;border-radius:6px;transition:.6s}
+
+    /* ===== GRÁFICAS ===== */
+    .chart-wrap{position:relative;height:180px;margin-top:8px}
+
+    /* ===== MANUALES ===== */
+    .manual-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+    .manual-card{background:white;border-radius:10px;border:1px solid #e2e8f0;cursor:pointer;transition:.2s;text-align:center;padding:18px 10px}
+    .manual-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+    .manual-icon{font-size:30px;margin-bottom:8px}
+    .manual-card h4{font-size:0.75rem;font-weight:800;color:#1e293b;margin-bottom:3px}
+    .manual-card span{font-size:0.65rem;color:#64748b}
+
+    /* ===== MODAL ===== */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:8000}
+    .modal-box{background:white;padding:28px;border-radius:16px;width:330px;text-align:center}
+    .modal-box h3{font-size:0.95rem;font-weight:800;margin-bottom:5px}
+    .modal-box p{font-size:0.72rem;color:#64748b;margin-bottom:14px}
+    .modal-box input{width:100%;padding:13px;text-align:center;border:2px solid #e2e8f0;border-radius:10px;font-size:1rem;font-weight:800;letter-spacing:3px;outline:none;transition:.2s;margin-bottom:10px}
+    .modal-box input:focus{border-color:#2dd4bf}
+    .btn-confirm{width:100%;padding:12px;background:#2dd4bf;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:800;font-size:0.85rem}
+    .btn-confirm:hover{background:#0d9488}
+    .btn-cancel-m{margin-top:9px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.75rem}
+
+    /* ===== NOTIFICACIÓN ===== */
+    .notification{position:fixed;bottom:20px;right:20px;background:#0f172a;color:white;padding:12px 18px;border-radius:10px;font-size:0.8rem;font-weight:700;z-index:9998;display:none;border-left:4px solid #2dd4bf;animation:slideIn .3s ease}
+    @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  </style>
 </head>
 <body>
 
-<div id="selector-pantalla">
-    <div class="login-card">
-        <div class="logo-login"><img src="https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS/blob/main/La%20Aurora%20CMMS.png?raw=true"></div>
-        <h2>AURORA CMMS</h2>
-        <select id="select-nave" class="login-input">
-            <option value="GLOBAL">ACCESO GLOBAL</option>
-            <option value="ARENA">ARENA</option>
-            <option value="PHOENIX">PHOENIX</option>
-        </select>
-        <input type="password" id="pass" placeholder="PASSWORD" class="login-input">
-        <button onclick="entrar()" class="btn-login">ENTRAR AL PANEL</button>
-    </div>
+<!-- ===================== LOGIN ===================== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">A</div>
+    <h2>AURORA CMMS PRO</h2>
+    <input type="password" id="pass" placeholder="PIN de acceso" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">ACCEDER AL SISTEMA</button>
+    <p class="login-hint"></p> <!-- ===================== EN ESTE APARTADO MUESTRA LA CONTRASEÑA DE ENTRADA AL CMMS ===================== -->
+  </div>
 </div>
 
-<nav id="sidebar">
-    <div class="sidebar-header">
-        <div class="sidebar-logo"><img src="https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS/blob/main/La%20Aurora.png?raw=true"></div>
-        <strong>AURORA PRO</strong>
-        <div id="clock" style="color:var(--aurora-green); font-size: 0.8rem; margin-top:5px;">00:00:00</div>
-    </div>
-    <div class="nav-menu">
-        <div class="nav-item active" onclick="showSection('dash')"><i class="fas fa-desktop"></i> Dashboard</div>
-        <div class="nav-item" onclick="showSection('stats')"><i class="fas fa-chart-bar"></i> Estadísticas</div>
-        <div class="nav-item" onclick="showSection('historial')"><i class="fas fa-history"></i> Historial</div>
-    </div>
-    <div style="padding: 15px;">
-        <button class="btn-login" style="margin-bottom:10px; width:100%; font-size: 0.8rem; background: var(--dimo-blue);" onclick="exportarExcel()">
-            <i class="fas fa-file-excel"></i> REPORTE EXCEL
-        </button>
-        <button class="btn-login" style="width:100%; font-size: 0.8rem; background: var(--aurora-red);" onclick="cerrarSesion()">
-            <i class="fas fa-power-off"></i> CERRAR SESIÓN
-        </button>
-    </div>
-</nav>
+<!-- ===================== APP ===================== -->
+<div id="app">
 
-<div id="main-content">
-    <div id="section-dash" class="view-section active">
-        <div class="stats-container">
-            <div class="stat-box" onclick="render('good')"><span id="count-good" class="stat-value">0</span><span>OK</span></div>
-            <div class="stat-box" onclick="render('warning')"><span id="count-warning" class="stat-value">0</span><span>50%</span></div>
-            <div class="stat-box" onclick="render('danger')"><span id="count-danger" class="stat-value" style="color:var(--aurora-red)">0</span><span>OT</span></div>
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sb-top">
+      <div class="sb-logo-row">
+        <div class="sb-icon">A</div>
+        <div>
+          <div class="sb-name">H. GUERRERO</div>
+          <div class="sb-role">TÉCNICO CMMS</div>
         </div>
-        <div id="master-container"></div>
+      </div>
+      <div class="sb-clock" id="clock">00:00:00</div>
+      <div class="sb-turn">
+        <button class="active-turn" onclick="setTurn(this)">T1</button>
+        <button onclick="setTurn(this)">T2</button>
+        <button onclick="setTurn(this)">T3</button>
+      </div>
     </div>
-    <div id="section-stats" class="view-section"><h2>Análisis de Rendimiento</h2></div>
-    <div id="section-historial" class="view-section"><h2>Historial de Actividades</h2></div>
+
+    <div class="nav-item active" onclick="nav('dash',this)">◼ Dashboard</div>
+    <div class="nav-group">Órdenes de Trabajo</div>
+    <div class="nav-item" onclick="nav('nueva-ot',this)">✚ Nueva OT</div>
+    <div class="nav-item" onclick="nav('historial',this)">☰ Historial OT <span class="nav-badge" id="ot-badge">0</span></div>
+    <div class="nav-group">Preventivo</div>
+    <div class="nav-item" onclick="nav('preventivo',this)">📅 Plan Preventivo</div>
+    <div class="nav-group">Operaciones</div>
+    <div class="nav-item" onclick="nav('sap',this)">⊕ Almacén SAP</div>
+    <div class="nav-item" onclick="nav('manuals',this)">📖 Manuales</div>
+    <div class="nav-group">Ingeniería</div>
+    <div class="nav-item" onclick="nav('tools',this)">⚙ Calculadoras</div>
+    <div class="nav-item" onclick="nav('intel',this)">◈ KPI / Análisis</div>
+
+    <div class="sb-footer">
+      <button class="btn-salir" onclick="logout()">SALIR DEL SISTEMA</button>
+    </div>
+  </nav>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main id="main">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="v-dash" class="view active">
+      <div class="page-title">Dashboard — Estado de Flota en Tiempo Real</div>
+      <div class="summary-row">
+        <div class="sum-card ok"><h1 id="cnt-ok">0</h1><p>Operativos</p></div>
+        <div class="sum-card prev"><h1 id="cnt-prev">0</h1><p>Preventivo</p></div>
+        <div class="sum-card ot"><h1 id="cnt-ot">0</h1><p>En Taller</p></div>
+        <div class="sum-card kpi"><h1 id="cnt-disp">—</h1><p>Disponibilidad</p></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Tendencia de Fallas — Últimos 6 Meses</h3>
+          <div class="chart-wrap"><canvas id="chart-fallas"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>OTs por Estado</h3>
+          <div class="chart-wrap"><canvas id="chart-ots"></canvas></div>
+        </div>
+      </div>
+      <div class="page-title">Flota PMB — Nave Arena / Phoenix (48 máquinas)</div>
+      <div class="machine-grid" id="machine-grid"></div>
+    </div>
+
+    <!-- ===== NUEVA OT ===== -->
+    <div id="v-nueva-ot" class="view">
+      <div class="page-title">Nueva Orden de Trabajo</div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Datos de la OT</h3>
+          <div class="two-col">
+            <div class="field"><label>Número OT</label><input type="text" id="ot-num" readonly style="background:#f8fafc;color:#64748b"></div>
+            <div class="field"><label>Fecha</label><input type="date" id="ot-fecha"></div>
+          </div>
+          <div class="two-col">
+            <div class="field"><label>Máquina / Equipo</label><select id="ot-equipo"></select></div>
+            <div class="field"><label>Tipo de Mantenimiento</label>
+              <select id="ot-tipo">
+                <option>Correctivo</option>
+                <option>Preventivo</option>
+                <option>Predictivo</option>
+                <option>Mejora</option>
+              </select>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field"><label>Prioridad</label>
+              <select id="ot-prioridad">
+                <option value="Alta">🔴 Alta</option>
+                <option value="Media" selected>🟡 Media</option>
+                <option value="Baja">🟢 Baja</option>
+              </select>
+            </div>
+            <div class="field"><label>Técnico Asignado</label>
+              <select id="ot-tecnico">
+                <option>H. Guerrero</option>
+                <option>R. Martínez</option>
+                <option>J. Pérez</option>
+                <option>L. Santos</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Descripción de la Falla</label><textarea id="ot-desc" placeholder="Describa la falla o trabajo a realizar..."></textarea></div>
+          <div class="field"><label>Trabajo Realizado</label><textarea id="ot-trabajo" placeholder="Acciones tomadas, repuestos usados..."></textarea></div>
+          <div class="two-col">
+            <div class="field"><label>Tiempo Estimado (hrs)</label><input type="number" id="ot-tiempo" value="2" min="0.5" step="0.5"></div>
+            <div class="field"><label>Hora de Inicio</label><input type="time" id="ot-hora"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-g" onclick="guardarOT('Abierta')">Abrir OT</button>
+            <button class="btn btn-p" onclick="guardarOT('En Progreso')">Iniciar Trabajo</button>
+            <button class="btn btn-a" onclick="guardarOT('Completada')">Completar OT</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>OTs Abiertas Recientes</h3>
+          <div id="ots-recientes" style="font-size:0.78rem;color:#64748b">No hay OTs abiertas.</div>
+          <div style="margin-top:20px">
+            <h3>Repuestos Utilizados</h3>
+            <div class="field"><label>Código SAP</label><input type="text" id="rep-sap" placeholder="Ej: 1004582"></div>
+            <div class="field"><label>Descripción</label><input type="text" id="rep-desc" placeholder="Descripción del repuesto"></div>
+            <div class="field"><label>Cantidad</label><input type="number" id="rep-qty" value="1" min="1"></div>
+            <button class="btn btn-s" onclick="addRepuesto()">Agregar Repuesto</button>
+            <div id="rep-list" style="margin-top:10px;font-size:0.78rem"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HISTORIAL OT ===== -->
+    <div id="v-historial" class="view">
+      <div class="page-title">Historial de Órdenes de Trabajo</div>
+      <div class="card" style="padding:16px 18px">
+        <div class="search-row">
+          <input class="search-input" id="ot-search" placeholder="Buscar por OT, equipo, técnico, descripción..." onkeyup="filtrarOTs(this.value)">
+          <button class="btn-export" onclick="exportarOTs()">⬇ Exportar CSV</button>
+        </div>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filtrarEstado('Todas',this)">Todas</button>
+          <button class="filter-btn" onclick="filtrarEstado('Abierta',this)">Abiertas</button>
+          <button class="filter-btn" onclick="filtrarEstado('En Progreso',this)">En Progreso</button>
+          <button class="filter-btn" onclick="filtrarEstado('Completada',this)">Completadas</button>
+        </div>
+        <div class="ot-table-wrap">
+          <table>
+            <thead>
+              <tr><th>OT #</th><th>Fecha</th><th>Equipo</th><th>Tipo</th><th>Técnico</th><th>Descripción</th><th>Estado</th><th>Hrs</th></tr>
+            </thead>
+            <tbody id="ot-tbody"></tbody>
+          </table>
+          <div id="ot-empty" style="text-align:center;padding:30px;color:#94a3b8;font-size:0.82rem">No hay órdenes de trabajo registradas aún.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PLAN PREVENTIVO ===== -->
+    <div id="v-preventivo" class="view">
+      <div class="page-title">Plan de Mantenimiento Preventivo</div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Agregar Tarea Preventiva</h3>
+          <div class="field"><label>Equipo</label><select id="prev-equipo"></select></div>
+          <div class="two-col">
+            <div class="field"><label>Frecuencia</label>
+              <select id="prev-freq">
+                <option>Diario</option>
+                <option selected>Semanal</option>
+                <option>Quincenal</option>
+                <option>Mensual</option>
+                <option>Trimestral</option>
+                <option>Semestral</option>
+                <option>Anual</option>
+              </select>
+            </div>
+            <div class="field"><label>Próxima Fecha</label><input type="date" id="prev-fecha"></div>
+          </div>
+          <div class="field"><label>Tarea a Realizar</label><textarea id="prev-tarea" placeholder="Ej: Cambio de aceite, limpieza de filtros, calibración..."></textarea></div>
+          <div class="field"><label>Técnico Responsable</label>
+            <select id="prev-tecnico">
+              <option>H. Guerrero</option><option>R. Martínez</option><option>J. Pérez</option><option>L. Santos</option>
+            </select>
+          </div>
+          <button class="btn btn-g" onclick="agregarPreventivo()" style="margin-top:4px">Agregar al Plan</button>
+        </div>
+        <div class="card">
+          <h3>Resumen del Plan</h3>
+          <div class="three-col">
+            <div class="sum-card ok" style="padding:12px"><h1 id="prev-cnt-ok" style="font-size:1.4rem">0</h1><p>Al día</p></div>
+            <div class="sum-card prev" style="padding:12px"><h1 id="prev-cnt-due" style="font-size:1.4rem">0</h1><p>Próximos</p></div>
+            <div class="sum-card ot" style="padding:12px"><h1 id="prev-cnt-venc" style="font-size:1.4rem">0</h1><p>Vencidos</p></div>
+          </div>
+          <div style="margin-top:14px;font-size:0.78rem;color:#475569;line-height:2">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:5px 0"><span>Total tareas planificadas</span><strong id="prev-total">0</strong></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0"><span>Cumplimiento del mes</span><strong id="prev-cumplimiento" style="color:#0f766e">—</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Tareas Programadas</h3>
+        <div class="prev-table-head"><span>Equipo</span><span>Tarea</span><span>Frecuencia</span><span>Próxima</span><span>Estado</span></div>
+        <div id="prev-list"></div>
+        <div id="prev-empty" style="text-align:center;padding:24px;color:#94a3b8;font-size:0.8rem">No hay tareas preventivas registradas aún.</div>
+      </div>
+    </div>
+
+    <!-- ===== SAP ===== -->
+    <div id="v-sap" class="view">
+      <div class="page-title">Almacén SAP — Búsqueda de Repuestos</div>
+      <div class="card" style="padding:16px 18px">
+        <input class="search-input" placeholder="Código o descripción del componente..." onkeyup="fSAP(this.value)" style="margin-bottom:12px">
+        <table>
+          <thead><tr><th>Código</th><th>Descripción</th><th>Stock</th><th>Ubicación</th><th>Unidad</th></tr></thead>
+          <tbody id="sap-tbody">
+            <tr><td>1004582</td><td>Sensor Inductivo M12 — Balluff</td><td style="color:#0f766e;font-weight:700">12</td><td>A-12-04</td><td>EA</td></tr>
+<tr><td>20068883</td><td>Termocupla tipo ojo</td><td style="color:#0f766e;font-weight:700">6</td><td>A-01-01</td><td>EA</td></tr>
+<tr><td>20049925</td><td>Termocupla de rosca</td><td style="color:#0f766e;font-weight:700">5</td><td>A-01-02</td><td>EA</td></tr>
+<tr><td>20066989</td><td>Resistencia 120V</td><td style="color:#0f766e;font-weight:700">10</td><td>A-02-01</td><td>EA</td></tr>
+<tr><td>20055641</td><td>Resistencia Blades 7426F1</td><td style="color:#0f766e;font-weight:700">4</td><td>A-02-02</td><td>EA</td></tr>
+<tr><td>20068597</td><td>Resistencia 110V Pauche 335W</td><td style="color:#0f766e;font-weight:700">3</td><td>A-02-03</td><td>EA</td></tr>
+<tr><td>20069247</td><td>SSR Relay DC/AC</td><td style="color:#0f766e;font-weight:700">6</td><td>A-03-01</td><td>EA</td></tr>
+<tr><td>40013244</td><td>Bota dieléctrica</td><td style="color:#0f766e;font-weight:700">8</td><td>B-01-01</td><td>EA</td></tr>
+<tr><td>20055318</td><td>Resistencia KDS</td><td style="color:#0f766e;font-weight:700">5</td><td>A-02-04</td><td>EA</td></tr>
+<tr><td>20049333</td><td>Controlador de temperatura</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-01</td><td>EA</td></tr>
+<tr><td>40003404</td><td>Pila 9V</td><td style="color:#0f766e;font-weight:700">15</td><td>B-02-01</td><td>EA</td></tr>
+<tr><td>20068711</td><td>Guardamotor 6-10A</td><td style="color:#0f766e;font-weight:700">4</td><td>C-02-01</td><td>EA</td></tr>
+<tr><td>20055566</td><td>Parada de emergencia amarilla</td><td style="color:#0f766e;font-weight:700">3</td><td>C-03-01</td><td>EA</td></tr>
+<tr><td>20048783</td><td>Relay 8 pines 24V DC</td><td style="color:#0f766e;font-weight:700">7</td><td>A-03-02</td><td>EA</td></tr>
+<tr><td>20050064</td><td>Microswitch PMB</td><td style="color:#0f766e;font-weight:700">6</td><td>C-02-02</td><td>EA</td></tr>
+<tr><td>40005862</td><td>Vinil negro</td><td style="color:#0f766e;font-weight:700">12</td><td>B-03-01</td><td>EA</td></tr>
+<tr><td>40003409</td><td>Pila AA</td><td style="color:#0f766e;font-weight:700">20</td><td>B-02-02</td><td>EA</td></tr>
+<tr><td>20075139</td><td>Tarjeta selladora de cajas</td><td style="color:#0f766e;font-weight:700">2</td><td>D-01-01</td><td>EA</td></tr>
+<tr><td>20068748</td><td>Carbón máquina Pouch</td><td style="color:#0f766e;font-weight:700">10</td><td>A-04-01</td><td>EA</td></tr>
+<tr><td>20049199</td><td>Horómetro digital LE8N-BF</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-02</td><td>EA</td></tr>
+<tr><td>20048679</td><td>Lector de marca FC</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-03</td><td>EA</td></tr>
+<tr><td>20049339</td><td>Contador digital</td><td style="color:#0f766e;font-weight:700">3</td><td>C-01-04</td><td>EA</td></tr>
+<tr><td>20075225</td><td>Pulsador verde con luz</td><td style="color:#0f766e;font-weight:700">6</td><td>C-03-02</td><td>EA</td></tr>
+
+<tr><td>20049922</td><td>Resistencia Maker 220V 1000W</td><td style="color:#0f766e;font-weight:700">3</td><td>A-02-05</td><td>EA</td></tr>
+<tr><td>20067747</td><td>Resistencia selladora Nute</td><td style="color:#0f766e;font-weight:700">4</td><td>A-02-06</td><td>EA</td></tr>
+<tr><td>20067756</td><td>Resistencia 120V 180W</td><td style="color:#0f766e;font-weight:700">5</td><td>A-02-07</td><td>EA</td></tr>
+<tr><td>20074067</td><td>Resistencia 120V 100W</td><td style="color:#0f766e;font-weight:700">6</td><td>A-02-08</td><td>EA</td></tr>
+<tr><td>20055664</td><td>Resistencia 24V 75W</td><td style="color:#0f766e;font-weight:700">4</td><td>A-02-09</td><td>EA</td></tr>
+<tr><td>20049016</td><td>Resistencia variomat 27V 100W</td><td style="color:#0f766e;font-weight:700">2</td><td>A-02-10</td><td>EA</td></tr>
+
+<tr><td>20068535</td><td>Termocupla tipo ojo grande</td><td style="color:#0f766e;font-weight:700">4</td><td>A-01-03</td><td>EA</td></tr>
+<tr><td>20074055</td><td>Termocupla Omega grande</td><td style="color:#0f766e;font-weight:700">2</td><td>A-01-04</td><td>EA</td></tr>
+
+<tr><td>20049784</td><td>Relé 24V 5 pin</td><td style="color:#0f766e;font-weight:700">6</td><td>A-03-03</td><td>EA</td></tr>
+<tr><td>20066897</td><td>Solenoide 24V DC</td><td style="color:#0f766e;font-weight:700">3</td><td>C-02-03</td><td>EA</td></tr>
+
+<tr><td>20068033</td><td>Puente rectificador 6 pines</td><td style="color:#0f766e;font-weight:700">3</td><td>C-02-04</td><td>EA</td></tr>
+<tr><td>20068743</td><td>Fusible 250V 20A</td><td style="color:#0f766e;font-weight:700">10</td><td>B-03-02</td><td>EA</td></tr>
+<tr><td>20067971</td><td>Controlador fibra Scandia</td><td style="color:#0f766e;font-weight:700">2</td><td>D-01-02</td><td>EA</td></tr>
+<tr><td>20067979</td><td>Fibra de controlador</td><td style="color:#0f766e;font-weight:700">2</td><td>D-01-03</td><td>EA</td></tr>
+<tr><td>40013136</td><td>Canutillo termoencogible 0.13</td><td style="color:#0f766e;font-weight:700">15</td><td>B-03-03</td><td>EA</td></tr>
+<tr><td>40013137</td><td>Canutillo termoencogible 0.19</td><td style="color:#0f766e;font-weight:700">15</td><td>B-03-04</td><td>EA</td></tr>
+<tr><td>20069926</td><td>Desconectivo</td><td style="color:#0f766e;font-weight:700">4</td><td>C-02-05</td><td>EA</td></tr>
+<tr><td>20068598</td><td>Controlador motor selladora</td><td style="color:#0f766e;font-weight:700">2</td><td>D-01-04</td><td>EA</td></tr>
+<tr><td>20048831</td><td>Fotocelda reflectiva</td><td style="color:#0f766e;font-weight:700">3</td><td>C-01-05</td><td>EA</td></tr>
+<tr><td>20067049</td><td>Fibra óptica sensores</td><td style="color:#0f766e;font-weight:700">2</td><td>D-02-01</td><td>EA</td></tr>
+<tr><td>20068108</td><td>Variador MX2</td><td style="color:#0f766e;font-weight:700">1</td><td>D-02-02</td><td>EA</td></tr>
+<tr><td>20066927</td><td>Sensor IFM 20-250V</td><td style="color:#0f766e;font-weight:700">3</td><td>C-01-06</td><td>EA</td></tr>
+<tr><td>20067274</td><td>Motor Baldor conveyor</td><td style="color:#0f766e;font-weight:700">1</td><td>D-03-01</td><td>EA</td></tr>
+<tr><td>20067267</td><td>Electroválvula 120V MAC</td><td style="color:#0f766e;font-weight:700">2</td><td>C-02-06</td><td>EA</td></tr>
+<tr><td>20069745</td><td>Amplificador fibra óptica</td><td style="color:#0f766e;font-weight:700">2</td><td>D-02-03</td><td>EA</td></tr>
+<tr><td>20067727</td><td>Cable sensor 4 hilos</td><td style="color:#0f766e;font-weight:700">4</td><td>C-02-07</td><td>EA</td></tr>
+<tr><td>20066894</td><td>Selector 3 posiciones</td><td style="color:#0f766e;font-weight:700">3</td><td>C-03-03</td><td>EA</td></tr>
+<tr><td>20076389</td><td>Válvula de agua AMF</td><td style="color:#0f766e;font-weight:700">2</td><td>C-02-08</td><td>EA</td></tr>
+<tr><td>20066795</td><td>Sensor contador AMF</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-07</td><td>EA</td></tr>
+<tr><td>20075901</td><td>Relé de seguridad</td><td style="color:#0f766e;font-weight:700">2</td><td>A-03-04</td><td>EA</td></tr>
+<tr><td>20067698</td><td>Sensor magnético</td><td style="color:#0f766e;font-weight:700">3</td><td>C-01-08</td><td>EA</td></tr>
+<tr><td>20068892</td><td>Guarda Allen Bradley</td><td style="color:#0f766e;font-weight:700">1</td><td>D-03-02</td><td>EA</td></tr>
+<tr><td>20068520</td><td>Pulsador Start/Stop doble</td><td style="color:#0f766e;font-weight:700">3</td><td>C-03-04</td><td>EA</td></tr>
+<tr><td>20049228</td><td>Base relé 5 pin</td><td style="color:#0f766e;font-weight:700">6</td><td>A-03-05</td><td>EA</td></tr>
+<tr><td>20075420</td><td>Interruptor seguridad puerta</td><td style="color:#0f766e;font-weight:700">2</td><td>C-03-05</td><td>EA</td></tr>
+<tr><td>20075290</td><td>Triac para plancha</td><td style="color:#0f766e;font-weight:700">3</td><td>C-02-09</td><td>EA</td></tr>
+<tr><td>20048781</td><td>Sensor proximidad</td><td style="color:#0f766e;font-weight:700">4</td><td>C-01-09</td><td>EA</td></tr>
+<tr><td>20074933</td><td>Caja 3 pulsadores</td><td style="color:#0f766e;font-weight:700">2</td><td>C-03-06</td><td>EA</td></tr>
+<tr><td>20076638</td><td>Cable fotocelda 5 hilos</td><td style="color:#0f766e;font-weight:700">3</td><td>C-02-10</td><td>EA</td></tr>
+<tr><td>20068885</td><td>Termocupla TW</td><td style="color:#0f766e;font-weight:700">2</td><td>A-01-05</td><td>EA</td></tr>
+<tr><td>20067236</td><td>Item sin descripción</td><td style="color:#0f766e;font-weight:700">1</td><td>Z-00-01</td><td>EA</td></tr>
+<tr><td>20023093</td><td>Item sin descripción</td><td style="color:#0f766e;font-weight:700">1</td><td>Z-00-02</td><td>EA</td></tr>
+<tr><td>20076401</td><td>Base sensor Tolomatic</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-10</td><td>EA</td></tr>
+<tr><td>20068847</td><td>Selector 2 posiciones 30mm</td><td style="color:#0f766e;font-weight:700">3</td><td>C-03-07</td><td>EA</td></tr>
+<tr><td>20068887</td><td>Resistencia formadores TW</td><td style="color:#0f766e;font-weight:700">4</td><td>A-02-11</td><td>EA</td></tr>
+<tr><td>20068888</td><td>Resistencia pincher TW</td><td style="color:#0f766e;font-weight:700">3</td><td>A-02-12</td><td>EA</td></tr>
+<tr><td>20074680</td><td>Sensor reflectivo KEIS Pack</td><td style="color:#0f766e;font-weight:700">3</td><td>C-01-11</td><td>EA</td></tr>
+<tr><td>20075897</td><td>Sensor inductivo KEIS Pack</td><td style="color:#0f766e;font-weight:700">4</td><td>C-01-12</td><td>EA</td></tr>
+<tr><td>20067018</td><td>Limit switch atasco Scandia</td><td style="color:#0f766e;font-weight:700">3</td><td>C-02-11</td><td>EA</td></tr>
+<tr><td>20075226</td><td>Pulsador rojo 22mm</td><td style="color:#0f766e;font-weight:700">6</td><td>C-03-09</td><td>EA</td></tr>
+<tr><td>20069928</td><td>Botonera 2 hoyos</td><td style="color:#0f766e;font-weight:700">2</td><td>C-03-11</td><td>EA</td></tr>
+<tr><td>20066929</td><td>Limit switch cigarro afuera Scandia</td><td style="color:#0f766e;font-weight:700">3</td><td>C-02-12</td><td>EA</td></tr>
+<tr><td>20044343</td><td>Cable resistencia</td><td style="color:#0f766e;font-weight:700">5</td><td>A-04-02</td><td>EA</td></tr>
+<tr><td>20068128</td><td>Manguera selladora 120V</td><td style="color:#0f766e;font-weight:700">3</td><td>D-03-03</td><td>EA</td></tr>
+<tr><td>20068992</td><td>Fotocelda TW-160</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-13</td><td>EA</td></tr>
+<tr><td>20068848</td><td>Pulsador verde 30mm</td><td style="color:#0f766e;font-weight:700">4</td><td>C-03-13</td><td>EA</td></tr>
+<tr><td>20067969</td><td>Sensor doble</td><td style="color:#0f766e;font-weight:700">3</td><td>C-01-15</td><td>EA</td></tr>
+<tr><td>20074824</td><td>Resistencia 120V 100W en L</td><td style="color:#0f766e;font-weight:700">4</td><td>A-02-15</td><td>EA</td></tr>
+<tr><td>20068047</td><td>Cable 5 sensores</td><td style="color:#0f766e;font-weight:700">3</td><td>C-02-14</td><td>EA</td></tr>
+<tr><td>200501227</td><td>Sensor inductivo DC 2 hilos</td><td style="color:#0f766e;font-weight:700">3</td><td>C-01-16</td><td>EA</td></tr>
+<tr><td>20067894</td><td>Fibra óptica expulsión</td><td style="color:#0f766e;font-weight:700">2</td><td>D-02-05</td><td>EA</td></tr>
+<tr><td>20068881</td><td>Servo TW</td><td style="color:#0f766e;font-weight:700">1</td><td>D-03-05</td><td>EA</td></tr>
+<tr><td>20049338</td><td>Sensor Tolomatic</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-17</td><td>EA</td></tr>
+<tr><td>20076946</td><td>Batería PLC Maker G2</td><td style="color:#0f766e;font-weight:700">2</td><td>B-02-03</td><td>EA</td></tr>
+<tr><td>20049924</td><td>Controlador temperatura Omron</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-18</td><td>EA</td></tr>
+<tr><td>20049252</td><td>Relay 120V 8 pin</td><td style="color:#0f766e;font-weight:700">4</td><td>A-03-07</td><td>EA</td></tr>
+<tr><td>20068873</td><td>Fusible 15A</td><td style="color:#0f766e;font-weight:700">10</td><td>B-03-05</td><td>EA</td></tr>
+<tr><td>20068872</td><td>Fusible 10A</td><td style="color:#0f766e;font-weight:700">10</td><td>B-03-06</td><td>EA</td></tr>
+<tr><td>20067048</td><td>Amplificador expulsión</td><td style="color:#0f766e;font-weight:700">2</td><td>D-02-08</td><td>EA</td></tr>
+<tr><td>20055678</td><td>Electroválvula succión</td><td style="color:#0f766e;font-weight:700">2</td><td>C-02-16</td><td>EA</td></tr>
+<tr><td>20067084</td><td>Termocupla tipo Volvo</td><td style="color:#0f766e;font-weight:700">2</td><td>A-01-09</td><td>EA</td></tr>
+<tr><td>20055664</td><td>Resistencia Fildertip</td><td style="color:#0f766e;font-weight:700">4</td><td>A-02-16</td><td>EA</td></tr>
+<tr><td>20074407</td><td>Sensor fibra adhesivo</td><td style="color:#0f766e;font-weight:700">3</td><td>C-01-19</td><td>EA</td></tr>
+<tr><td>20069746</td><td>Sensor manivela</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-20</td><td>EA</td></tr>
+<tr><td>20067743</td><td>Carbón motor Scandia</td><td style="color:#0f766e;font-weight:700">6</td><td>A-04-03</td><td>EA</td></tr>
+<tr><td>20067978</td><td>Electro Valvula 5-2 a 24 Vdc</td><td style="color:#0f766e;font-weight:700">10</td><td>A-04-04</td><td>EA</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== MANUALES ===== -->
+    <div id="v-manuals" class="view">
+  <div class="page-title">Biblioteca Técnica — Manuales y Documentos</div>
+
+  <div class="manual-grid">
+
+    <div class="manual-card" onclick="window.open('https:github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/C-160.pdf')">
+      <div class="manual-icon">📄</div>
+      <h4>Manual PMB</h4>
+      <span>V1.2 — Rev 2026</span>
+    </div>
+
+    <div class="manual-card" onclick="window.open('https://raw.githubusercontent.com/USUARIO/repositorio/main/manuales/plc_logica.pdf','_blank')">
+      <div class="manual-icon">💾</div>
+      <h4>Lógica PLC</h4>
+      <span>CX-Programmer</span>
+    </div>
+
+    <div class="manual-card" onclick="window.open('https://raw.githubusercontent.com/USUARIO/repositorio/main/manuales/diagramas.pdf','_blank')">
+      <div class="manual-icon">⚡</div>
+      <h4>Diagramas Elec.</h4>
+      <span>Nave Arena</span>
+    </div>
+
+    <div class="manual-card" onclick="window.open('https://raw.githubusercontent.com/USUARIO/repositorio/main/manuales/plan_preventivo.pdf','_blank')">
+      <div class="manual-icon">🔧</div>
+      <h4>Plan Preventivo</h4>
+      <span>2026 Anual</span>
+    </div>
+
+    <div class="manual-card" onclick="window.open('https:github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/LOTO_SEGURIDAD.pdf')">
+      <div class="manual-icon">📋</div>
+      <h4>LOTO / Seguridad</h4>
+      <span>Procedimientos</span>
+    </div>
+
+    <div class="manual-card" onclick="window.open('https://raw.githubusercontent.com/USUARIO/repositorio/main/manuales/historial.xlsx','_blank')">
+      <div class="manual-icon">📊</div>
+      <h4>Historial OT</h4>
+      <span>Export Excel</span>
+    </div>
+
+    <div class="manual-card" onclick="window.open('https:github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/Catalogo_Rodamiento.pdf')">
+      <div class="manual-icon">🔩</div>
+      <h4>Catálogo Rodamientos</h4>
+      <span>SKF 2025</span>
+    </div>
+
+    <div class="manual-card" onclick="window.open('https:github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/nec_nema_ratings.pdf')">
+      <div class="manual-icon">📐</div>
+      <h4>Normas Eléctricas</h4>
+      <span>NEC / NEMA</span>
+    </div>
+
+  </div>
 </div>
 
-<div id="modal-ot">
-    <div class="modal-content">
-        <h2 id="ot-name" style="color:var(--aurora-red); margin:0;">EQUIPO</h2>
-        <p>Confirmación de Cierre Técnico</p>
-        <input type="password" id="pass-ot" placeholder="CLAVE" class="login-input" style="border:1px solid #ccc">
-        <button class="btn-login" onclick="ejecutarCierre()">CULMINAR MANTENIMIENTO</button>
-        <button class="btn-login" style="background:#ddd; color:#333; margin-top:8px;" onclick="cerrarModal()">CANCELAR</button>
+    <!-- ===== CALCULADORAS ===== -->
+    <div id="v-tools" class="view">
+      <div class="page-title">Calculadoras Técnicas de Ingeniería</div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Calculadora de Motores</h3>
+          <div class="two-col">
+            <div class="field"><label>Voltaje (V)</label><input type="number" id="m-v" value="480"></div>
+            <div class="field"><label>Corriente (A)</label><input type="number" id="m-a" value="10"></div>
+          </div>
+          <div class="two-col">
+            <div class="field"><label>Potencia (HP)</label><input type="number" id="m-hp" value="5"></div>
+            <div class="field"><label>Polos</label>
+              <select id="m-p">
+                <option value="2">2 Polos — 3600 RPM</option>
+                <option value="4" selected>4 Polos — 1800 RPM</option>
+                <option value="6">6 Polos — 1200 RPM</option>
+                <option value="8">8 Polos — 900 RPM</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-p" onclick="calcMotor()">Calcular Motor</button>
+            <button class="btn btn-s" onclick="calcOhm()">Ley de Ohm</button>
+            <button class="btn btn-o" onclick="clearMotor()">Limpiar</button>
+          </div>
+          <div class="result-box" id="res-motor">
+            <h4>Resultados Técnicos</h4>
+            <div id="motor-data"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Conversor de Unidades</h3>
+          <div class="field"><label>Milímetros (mm)</label><input type="number" id="val-mm" oninput="convertMM()" placeholder="Ej: 25.4"></div>
+          <div style="font-size:0.82rem;line-height:2.8;color:#334155">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0"><span style="color:#64748b">Pulgadas</span><strong id="res-in">—</strong></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0"><span style="color:#64748b">Centímetros</span><strong id="res-cm">—</strong></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0"><span style="color:#64748b">Metros</span><strong id="res-m">—</strong></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#64748b">Pies</span><strong id="res-ft">—</strong></div>
+          </div>
+          <div class="field" style="margin-top:16px"><label>Temperatura (°C)</label><input type="number" id="val-c" oninput="convertTemp()" placeholder="Grados Celsius"></div>
+          <div style="font-size:0.82rem;line-height:2.8;color:#334155">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0"><span style="color:#64748b">Fahrenheit</span><strong id="res-f">—</strong></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#64748b">Kelvin</span><strong id="res-k">—</strong></div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- ===== KPI ===== -->
+    <div id="v-intel" class="view">
+      <div class="page-title">Inteligencia de Planta — KPIs de Mantenimiento</div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Entrada de Datos del Mes</h3>
+          <div class="field"><label>Horas operativas del mes</label><input type="number" id="h-total" value="720" oninput="calcKPI()"></div>
+          <div class="field"><label>Número de fallas</label><input type="number" id="f-total" value="4" oninput="calcKPI()"></div>
+          <div class="field"><label>Horas totales de reparación</label><input type="number" id="h-rep" value="8" oninput="calcKPI()"></div>
+          <div class="field"><label>Eficiencia de rendimiento (%)</label><input type="number" id="efic" value="92" min="0" max="100" oninput="calcKPI()"></div>
+          <div class="field"><label>Calidad de producción (%)</label><input type="number" id="cal" value="95" min="0" max="100" oninput="calcKPI()"></div>
+          <div class="kpi-box" id="res-mtbf">MTBF: — hrs</div>
+        </div>
+        <div class="card">
+          <h3>Indicadores Calculados</h3>
+          <div style="font-size:0.82rem;color:#334155">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:8px 0"><span style="color:#64748b">MTTR — Tiempo medio de reparación</span><strong id="res-mttr">—</strong></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:8px 0"><span style="color:#64748b">Disponibilidad del equipo</span><strong id="res-disp">—</strong></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:8px 0"><span style="color:#64748b">Rendimiento</span><strong id="res-rend">—</strong></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:8px 0"><span style="color:#64748b">Calidad</span><strong id="res-cal">—</strong></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="color:#64748b;font-weight:800">OEE Total</span><strong id="res-oee" style="font-size:1.1rem;color:#0f766e">—</strong></div>
+          </div>
+          <div style="margin-top:14px">
+            <div style="font-size:0.62rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Disponibilidad</div>
+            <div class="oee-bar-wrap"><div class="oee-bar" id="bar-disp" style="width:0%;background:#2dd4bf"></div></div>
+            <div style="font-size:0.62rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 3px">OEE</div>
+            <div class="oee-bar-wrap"><div class="oee-bar" id="bar-oee" style="width:0%;background:#8b5cf6"></div></div>
+          </div>
+          <div class="chart-wrap" style="height:140px;margin-top:16px"><canvas id="chart-kpi"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
 </div>
 
+<!-- ===== MODAL FALLA ===== -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div style="font-size:34px;margin-bottom:10px">🔧</div>
+    <h3 id="modal-title">PMB-1</h3>
+    <p>Ingrese ID del técnico para registrar la falla y enviar a taller</p>
+    <input type="text" id="tech-id" placeholder="ID TÉCNICO" onkeydown="if(event.key==='Enter')confirmOTModal()">
+    <button class="btn-confirm" onclick="confirmOTModal()">CONFIRMAR — ENVIAR A TALLER</button>
+    <button class="btn-cancel-m" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<div class="notification" id="notif"></div>
+
+<!-- ===== JAVASCRIPT ===== -->
 <script>
-    let maquinas = [];
-    let seleccionado = null;
+  /* ---- DATOS GLOBALES ---- */
+  var machines = [];
+  var OTs = [];
+  var preventivos = [];
+  var repuestosTemp = [];
+  var currentMachine = null;
+  var estadoFiltro = 'Todas';
+  var otCounter = 1000;
+  var chartFallas = null, chartOts = null, chartKpi = null;
 
-    function entrar() {
-        if(document.getElementById('pass').value === "21705") {
-            document.getElementById('selector-pantalla').style.display = 'none';
-            document.getElementById('sidebar').style.display = 'flex';
-            initData();
-            render('all');
-        } else { alert("Clave incorrecta"); }
+  /* ---- LOGIN / LOGOUT ---- */
+  function login() {
+    if (document.getElementById('pass').value === '21705') {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      initAll();
+    } else {
+      var inp = document.getElementById('pass');
+      inp.style.borderColor = '#ef4444';
+      setTimeout(function () { inp.style.borderColor = '#e2e8f0'; }, 900);
     }
+  }
 
-    function cerrarSesion() {
-        document.getElementById('selector-pantalla').style.display = 'flex';
-        document.getElementById('sidebar').style.display = 'none';
-        document.getElementById('pass').value = '';
+  function logout() {
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('pass').value = '';
+  }
+
+  /* ---- INICIALIZACIÓN ---- */
+  function initAll() {
+    initMachines();
+    initEquipoSelects();
+    setToday();
+    calcKPI();
+    initCharts();
+    renderOTs();
+    renderPreventivo();
+  }
+
+  function initMachines() {
+    if (machines.length > 0) return;
+    for (var i = 1; i <= 48; i++) {
+      var hrs = Math.floor(Math.random() * 4200);
+      machines.push({
+        id: 'PMB-' + i,
+        hrs: hrs,
+        maxHrs: 5000,
+        status: i === 4 ? 'MTTO' : (i === 7 || i === 15 ? 'PREV' : 'OK')
+      });
     }
+    renderMachines();
+  }
 
-    function initData() {
-        maquinas = [];
-        // ARENA
-        for(let i=1; i<=48; i++) maquinas.push({id: `PMB-${i}`, nave: 'ARENA', h: Math.floor(Math.random()*2100)});
-        for(let i=67; i<=75; i++) maquinas.push({id: `PMB-${i}`, nave: 'ARENA', h: Math.floor(Math.random()*2100)});
-        maquinas.push({id: 'COMBINER-1', nave: 'ARENA', h: 2050}, {id: 'COMBINER-2', nave: 'ARENA', h: 400});
-        for(let i=1; i<=9; i++) maquinas.push({id: `SCANDIA-${i}`, nave: 'ARENA', h: Math.floor(Math.random()*2500)});
-        ['A','B','C','D','F','K'].forEach(l => maquinas.push({id: `SCANDIA-${l}`, nave: 'ARENA', h: Math.floor(Math.random()*2500)}));
-
-        // PHOENIX
-        for(let i=49; i<=66; i++) maquinas.push({id: `PMB-${i}`, nave: 'PHOENIX', h: Math.floor(Math.random()*2500)});
-        ['H','G','E','I','J','L'].forEach(l => maquinas.push({id: `SCAN-${l}`, nave: 'PHOENIX', h: Math.floor(Math.random()*2500)}));
-        maquinas.push({id: `COMBINER-3`, nave: 'PHOENIX', h: Math.floor(Math.random()*2500)});
-        maquinas.push({id: `TRIT-3`, nave: 'PHOENIX', h: Math.floor(Math.random()*2500)});
-    }
-
-    /* DELEGACIÓN DE EVENTOS PARA MÁQUINAS EN ROJO */
-    document.getElementById('master-container').addEventListener('click', function(e) {
-        const card = e.target.closest('.card');
-        if (card) {
-            const id = card.getAttribute('data-id');
-            const m = maquinas.find(x => x.id === id);
-            if (m && m.h >= 2000) {
-                seleccionado = m;
-                document.getElementById('ot-name').innerText = m.id;
-                document.getElementById('modal-ot').style.display = 'flex';
-            }
-        }
+  function initEquipoSelects() {
+    var opts = '';
+    for (var i = 1; i <= 48; i++) opts += '<option>PMB-' + i + '</option>';
+    ['ot-equipo', 'prev-equipo'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = opts;
     });
+  }
 
-    function render(filtro) {
-        const master = document.getElementById('master-container');
-        const naveSel = document.getElementById('select-nave').value;
-        master.innerHTML = '';
-        
-        let counts = {good:0, warning:0, danger:0};
-        const naves = (naveSel === 'GLOBAL') ? ['ARENA', 'PHOENIX'] : [naveSel];
+  function setToday() {
+    var today = new Date().toISOString().split('T')[0];
+    var hora = new Date().toTimeString().slice(0, 5);
+    var fd = document.getElementById('ot-fecha');
+    var fh = document.getElementById('ot-hora');
+    var fp = document.getElementById('prev-fecha');
+    if (fd) fd.value = today;
+    if (fh) fh.value = hora;
+    if (fp) fp.value = today;
+    nextOTNum();
+  }
 
-        naves.forEach(n => {
-            const mNave = maquinas.filter(m => m.nave === n);
-            mNave.forEach(m => {
-                if(m.h >= 2000) counts.danger++; 
-                else if(m.h >= 1000) counts.warning++; 
-                else counts.good++;
-            });
+  function nextOTNum() {
+    otCounter++;
+    var el = document.getElementById('ot-num');
+    if (el) el.value = 'OT-' + otCounter;
+  }
 
-            const filtradas = (filtro === 'all') ? mNave : mNave.filter(m => 
-                (filtro === 'good' && m.h < 1000) || (filtro === 'warning' && m.h >= 1000 && m.h < 2000) || (filtro === 'danger' && m.h >= 2000)
-            );
+  /* ---- NAVEGACIÓN ---- */
+  function nav(view, el) {
+    document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function (i) { i.classList.remove('active'); });
+    document.getElementById('v-' + view).classList.add('active');
+    el.classList.add('active');
+    if (view === 'historial') renderOTs();
+    if (view === 'nueva-ot') renderOTsRecientes();
+    if (view === 'preventivo') renderPreventivo();
+  }
 
-            if(filtradas.length > 0) {
-                const head = document.createElement('div');
-                head.innerHTML = `<div style="background:#fff; padding:10px; border-left:5px solid var(--dimo-blue); margin:15px 0; font-weight:bold; border-radius:5px;">NAVE: ${n}</div>`;
-                const grid = document.createElement('div');
-                grid.className = 'machine-grid';
-                filtradas.forEach(m => {
-                    const card = document.createElement('div');
-                    card.className = `card ${m.h >= 2000 ? 'alert' : (m.h >= 1000 ? 'warning' : '')}`;
-                    card.setAttribute('data-id', m.id);
-                    card.innerHTML = `<strong>${m.id}</strong><br><small>${m.h} hrs</small>`;
-                    grid.appendChild(card);
-                });
-                head.appendChild(grid);
-                master.appendChild(head);
-            }
+  function setTurn(el) {
+    document.querySelectorAll('.sb-turn button').forEach(function (b) { b.classList.remove('active-turn'); });
+    el.classList.add('active-turn');
+  }
+
+  /* ---- MÁQUINAS ---- */
+  function renderMachines() {
+    var grid = document.getElementById('machine-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    var ot = 0, prev = 0;
+    machines.forEach(function (m) {
+      if (m.status === 'MTTO') ot++;
+      if (m.status === 'PREV') prev++;
+      var c = document.createElement('div');
+      c.className = 'pmb-card ' + (m.status === 'MTTO' ? 'mtto' : m.status === 'PREV' ? 'prev-due' : '');
+      var pct = Math.round((m.hrs / m.maxHrs) * 100);
+      c.innerHTML =
+        '<div class="pmb-head"></div>' +
+        '<div class="pmb-body"><h4>' + m.id + '</h4><span>' + m.hrs + ' hrs</span></div>' +
+        '<div class="pmb-footer"><span>' + pct + '%</span><span>' + m.maxHrs + 'h</span></div>';
+      (function (machine) { c.onclick = function () { openModal(machine); }; })(m);
+      grid.appendChild(c);
+    });
+    document.getElementById('cnt-ot').textContent = ot;
+    document.getElementById('cnt-ok').textContent = 48 - ot - prev;
+    document.getElementById('cnt-prev').textContent = prev;
+    var disp = Math.round(((48 - ot) / 48) * 100);
+    document.getElementById('cnt-disp').textContent = disp + '%';
+  }
+
+  /* ---- MODAL FALLA ---- */
+  function openModal(m) {
+    if (m.status === 'MTTO') {
+      if (confirm('¿Liberar ' + m.id + ' a producción?\nConfirme que la reparación fue validada.')) {
+        m.status = 'OK';
+        renderMachines();
+        notif('✓ ' + m.id + ' liberado a producción');
+      }
+    } else {
+      currentMachine = m;
+      document.getElementById('modal-title').textContent = m.id;
+      document.getElementById('tech-id').value = '';
+      document.getElementById('modal').style.display = 'flex';
+      setTimeout(function () { document.getElementById('tech-id').focus(); }, 80);
+    }
+  }
+
+  function confirmOTModal() {
+    var id = document.getElementById('tech-id').value.trim();
+    if (id.length < 2) { document.getElementById('tech-id').style.borderColor = '#ef4444'; return; }
+    currentMachine.status = 'MTTO';
+    var ot = {
+      num: 'OT-' + otCounter, fecha: new Date().toLocaleDateString('es-DO'),
+      equipo: currentMachine.id, tipo: 'Correctivo', tecnico: id,
+      desc: 'Falla reportada desde dashboard', trabajo: '', estado: 'Abierta', hrs: 0, repuestos: []
+    };
+    OTs.unshift(ot);
+    otCounter++;
+    updateOTBadge();
+    closeModal();
+    renderMachines();
+    renderOTs();
+    renderOTsRecientes();
+    notif('OT creada para ' + currentMachine.id);
+  }
+
+  function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+    currentMachine = null;
+  }
+
+  /* ---- ÓRDENES DE TRABAJO ---- */
+  function guardarOT(estado) {
+    var num = document.getElementById('ot-num').value;
+    var equipo = document.getElementById('ot-equipo').value;
+    var tipo = document.getElementById('ot-tipo').value;
+    var tecnico = document.getElementById('ot-tecnico').value;
+    var desc = document.getElementById('ot-desc').value.trim();
+    var trabajo = document.getElementById('ot-trabajo').value.trim();
+    var tiempo = document.getElementById('ot-tiempo').value;
+    var fecha = document.getElementById('ot-fecha').value;
+    if (!desc) { alert('Ingrese la descripción de la falla'); return; }
+    OTs.unshift({ num: num, fecha: fecha, equipo: equipo, tipo: tipo, tecnico: tecnico, desc: desc, trabajo: trabajo, estado: estado, hrs: parseFloat(tiempo) || 0, repuestos: repuestosTemp.slice() });
+    var m = machines.find(function (x) { return x.id === equipo; });
+    if (m) m.status = (estado === 'Completada') ? 'OK' : 'MTTO';
+    renderMachines();
+    renderOTs();
+    renderOTsRecientes();
+    updateOTBadge();
+    repuestosTemp = [];
+    document.getElementById('rep-list').innerHTML = '';
+    document.getElementById('ot-desc').value = '';
+    document.getElementById('ot-trabajo').value = '';
+    nextOTNum();
+    notif('OT ' + num + ' guardada — ' + estado);
+  }
+
+  function renderOTs() {
+    var tbody = document.getElementById('ot-tbody');
+    if (!tbody) return;
+    var empty = document.getElementById('ot-empty');
+    var busq = (document.getElementById('ot-search') || {}).value || '';
+    var data = OTs.filter(function (o) {
+      var matchEstado = estadoFiltro === 'Todas' || o.estado === estadoFiltro;
+      var matchBusq = !busq || (o.num + o.equipo + o.tecnico + o.desc).toLowerCase().includes(busq.toLowerCase());
+      return matchEstado && matchBusq;
+    });
+    if (data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = data.map(function (o) {
+      var cls = o.estado === 'Abierta' ? 'badge-open' : o.estado === 'En Progreso' ? 'badge-prog' : o.estado === 'Completada' ? 'badge-done' : 'badge-cancel';
+      return '<tr>' +
+        '<td style="font-weight:700;color:#0f172a">' + o.num + '</td>' +
+        '<td>' + o.fecha + '</td>' +
+        '<td style="font-weight:700">' + o.equipo + '</td>' +
+        '<td>' + o.tipo + '</td>' +
+        '<td>' + o.tecnico + '</td>' +
+        '<td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + o.desc + '</td>' +
+        '<td><span class="badge ' + cls + '">' + o.estado + '</span></td>' +
+        '<td>' + o.hrs + 'h</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function renderOTsRecientes() {
+    var el = document.getElementById('ots-recientes');
+    if (!el) return;
+    var abiertas = OTs.filter(function (o) { return o.estado === 'Abierta' || o.estado === 'En Progreso'; }).slice(0, 5);
+    if (abiertas.length === 0) { el.innerHTML = '<p style="color:#94a3b8">No hay OTs abiertas.</p>'; return; }
+    el.innerHTML = abiertas.map(function (o) {
+      var cls = o.estado === 'Abierta' ? 'badge-open' : 'badge-prog';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9">' +
+        '<span style="font-weight:700;color:#1e293b">' + o.num + '</span>' +
+        '<span>' + o.equipo + '</span>' +
+        '<span class="badge ' + cls + '">' + o.estado + '</span></div>';
+    }).join('');
+  }
+
+  function filtrarOTs(v) { renderOTs(); }
+
+  function filtrarEstado(e, el) {
+    estadoFiltro = e;
+    document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+    el.classList.add('active');
+    renderOTs();
+  }
+
+  function updateOTBadge() {
+    var n = OTs.filter(function (o) { return o.estado === 'Abierta' || o.estado === 'En Progreso'; }).length;
+    document.getElementById('ot-badge').textContent = n;
+  }
+
+  function addRepuesto() {
+    var sap = document.getElementById('rep-sap').value.trim();
+    var desc = document.getElementById('rep-desc').value.trim();
+    var qty = document.getElementById('rep-qty').value;
+    if (!desc) return;
+    repuestosTemp.push({ sap: sap || '—', desc: desc, qty: qty });
+    document.getElementById('rep-list').innerHTML =
+      '<div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:6px;font-size:0.75rem">' +
+      repuestosTemp.map(function (r) { return '<div style="padding:3px 0;border-bottom:1px solid #f1f5f9">' + r.qty + 'x ' + r.desc + ' (SAP: ' + r.sap + ')</div>'; }).join('') +
+      '</div>';
+    document.getElementById('rep-sap').value = '';
+    document.getElementById('rep-desc').value = '';
+    document.getElementById('rep-qty').value = '1';
+  }
+
+  function exportarOTs() {
+    if (OTs.length === 0) { alert('No hay OTs para exportar'); return; }
+    var csv = 'OT,Fecha,Equipo,Tipo,Técnico,Descripción,Estado,Horas\n';
+    OTs.forEach(function (o) {
+      csv += '"' + o.num + '","' + o.fecha + '","' + o.equipo + '","' + o.tipo + '","' + o.tecnico + '","' + o.desc + '","' + o.estado + '","' + o.hrs + '"\n';
+    });
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'OTs_Aurora_' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /* ---- PLAN PREVENTIVO ---- */
+  function agregarPreventivo() {
+    var equipo = document.getElementById('prev-equipo').value;
+    var freq = document.getElementById('prev-freq').value;
+    var fecha = document.getElementById('prev-fecha').value;
+    var tarea = document.getElementById('prev-tarea').value.trim();
+    var tecnico = document.getElementById('prev-tecnico').value;
+    if (!tarea) { alert('Ingrese la tarea a realizar'); return; }
+    preventivos.push({ equipo: equipo, freq: freq, fecha: fecha, tarea: tarea, tecnico: tecnico, completado: false });
+    document.getElementById('prev-tarea').value = '';
+    renderPreventivo();
+    notif('Tarea preventiva agregada para ' + equipo);
+  }
+
+  function renderPreventivo() {
+    var el = document.getElementById('prev-list');
+    var empty = document.getElementById('prev-empty');
+    if (!el) return;
+    if (preventivos.length === 0) { el.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    var ok = 0, due = 0, venc = 0;
+    el.innerHTML = preventivos.map(function (p, i) {
+      var fecha = new Date(p.fecha + 'T00:00:00');
+      var diff = Math.round((fecha - hoy) / (1000 * 60 * 60 * 24));
+      var badge, color;
+      if (p.completado) { badge = 'Completado'; color = 'badge-done'; ok++; }
+      else if (diff < 0) { badge = 'Vencido'; color = 'badge-open'; venc++; }
+      else if (diff <= 7) { badge = 'En ' + diff + 'd'; color = 'badge-prog'; due++; }
+      else { badge = 'Programado'; color = 'badge-cancel'; ok++; }
+      return '<div class="prev-table-row">' +
+        '<span style="font-weight:700;color:#1e293b">' + p.equipo + '</span>' +
+        '<span style="font-size:0.75rem;color:#334155">' + p.tarea + '</span>' +
+        '<span style="font-size:0.72rem;color:#64748b">' + p.freq + '</span>' +
+        '<span style="font-size:0.72rem">' + p.fecha + '</span>' +
+        '<span><span class="badge ' + color + '">' + badge + '</span></span>' +
+        '</div>';
+    }).join('');
+    document.getElementById('prev-cnt-ok').textContent = ok;
+    document.getElementById('prev-cnt-due').textContent = due;
+    document.getElementById('prev-cnt-venc').textContent = venc;
+    document.getElementById('prev-total').textContent = preventivos.length;
+    var pct = preventivos.length > 0 ? Math.round((ok / preventivos.length) * 100) + '%' : '—';
+    document.getElementById('prev-cumplimiento').textContent = pct;
+  }
+
+  /* ---- SAP ---- */
+  function fSAP(v) {
+    document.querySelectorAll('#sap-tbody tr').forEach(function (r) {
+      r.style.display = r.textContent.toLowerCase().includes(v.toLowerCase()) ? '' : 'none';
+    });
+  }
+
+  /* ---- CALCULADORAS ---- */
+  function calcMotor() {
+    var v = parseFloat(document.getElementById('m-v').value);
+    var a = parseFloat(document.getElementById('m-a').value);
+    var hp = parseFloat(document.getElementById('m-hp').value);
+    var p = parseInt(document.getElementById('m-p').value);
+    if (isNaN(v) || isNaN(a) || isNaN(hp)) { alert('Complete todos los campos'); return; }
+    var rpm = (120 * 60) / p;
+    var kw = (hp * 0.746).toFixed(2);
+    var kva = ((v * a * 1.732) / 1000).toFixed(2);
+    var fp = (hp * 746 / (v * a * 1.732)).toFixed(3);
+    var torque = ((hp * 5252) / rpm).toFixed(2);
+    showMotorResult([
+      ['Velocidad de sincronismo', rpm + ' RPM'],
+      ['Potencia eléctrica', kw + ' kW'],
+      ['Consumo aparente', kva + ' kVA'],
+      ['Factor de potencia estimado', fp],
+      ['Torque', torque + ' lb·ft']
+    ]);
+  }
+
+  function calcOhm() {
+    var v = parseFloat(document.getElementById('m-v').value);
+    var a = parseFloat(document.getElementById('m-a').value);
+    if (isNaN(v) || isNaN(a) || a === 0) { alert('Faltan Voltaje o Amperaje'); return; }
+    showMotorResult([
+      ['Resistencia (R = V/I)', (v / a).toFixed(2) + ' Ω'],
+      ['Potencia real (P = V×I)', (v * a).toFixed(2) + ' W'],
+      ['Potencia en kW', (v * a / 1000).toFixed(3) + ' kW']
+    ]);
+  }
+
+  function showMotorResult(rows) {
+    document.getElementById('motor-data').innerHTML = rows.map(function (r) {
+      return '<div class="res-row"><span>' + r[0] + '</span><span class="res-val">' + r[1] + '</span></div>';
+    }).join('');
+    document.getElementById('res-motor').style.display = 'block';
+  }
+
+  function clearMotor() {
+    document.getElementById('res-motor').style.display = 'none';
+    ['m-v', 'm-a', 'm-hp'].forEach(function (id) { document.getElementById(id).value = ''; });
+  }
+
+  function convertMM() {
+    var mm = parseFloat(document.getElementById('val-mm').value);
+    if (isNaN(mm)) {
+      ['res-in', 'res-cm', 'res-m', 'res-ft'].forEach(function (id) { document.getElementById(id).textContent = '—'; });
+      return;
+    }
+    document.getElementById('res-in').textContent = (mm / 25.4).toFixed(4) + ' "';
+    document.getElementById('res-cm').textContent = (mm / 10).toFixed(3) + ' cm';
+    document.getElementById('res-m').textContent = (mm / 1000).toFixed(4) + ' m';
+    document.getElementById('res-ft').textContent = (mm / 304.8).toFixed(4) + ' ft';
+  }
+
+  function convertTemp() {
+    var c = parseFloat(document.getElementById('val-c').value);
+    if (isNaN(c)) { document.getElementById('res-f').textContent = '—'; document.getElementById('res-k').textContent = '—'; return; }
+    document.getElementById('res-f').textContent = ((c * 9 / 5) + 32).toFixed(2) + ' °F';
+    document.getElementById('res-k').textContent = (c + 273.15).toFixed(2) + ' K';
+  }
+
+  /* ---- KPI ---- */
+  function calcKPI() {
+    var h = parseFloat(document.getElementById('h-total').value) || 0;
+    var f = parseFloat(document.getElementById('f-total').value) || 0;
+    var hr = parseFloat(document.getElementById('h-rep').value) || 0;
+    var ef = parseFloat(document.getElementById('efic').value) || 92;
+    var cal = parseFloat(document.getElementById('cal').value) || 95;
+    var mtbf = f > 0 ? ((h - hr) / f).toFixed(1) : '∞';
+    var mttr = f > 0 ? (hr / f).toFixed(2) : 0;
+    var disp = h > 0 ? (((h - hr) / h) * 100).toFixed(1) : 100;
+    var oee = ((parseFloat(disp) / 100) * (ef / 100) * (cal / 100) * 100).toFixed(1);
+    document.getElementById('res-mtbf').textContent = 'MTBF: ' + mtbf + ' horas';
+    document.getElementById('res-mttr').textContent = mttr + ' h/falla';
+    document.getElementById('res-disp').textContent = disp + '%';
+    document.getElementById('res-rend').textContent = ef + '%';
+    document.getElementById('res-cal').textContent = cal + '%';
+    document.getElementById('res-oee').textContent = oee + '%';
+    document.getElementById('bar-disp').style.width = Math.min(disp, 100) + '%';
+    document.getElementById('bar-oee').style.width = Math.min(oee, 100) + '%';
+  }
+
+  /* ---- GRÁFICAS ---- */
+  function initCharts() {
+    setTimeout(function () {
+      var ctx1 = document.getElementById('chart-fallas');
+      if (ctx1 && !chartFallas) {
+        chartFallas = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+            labels: ['Nov', 'Dic', 'Ene', 'Feb', 'Mar', 'Abr'],
+            datasets: [
+              { label: 'Fallas', data: [8, 5, 7, 3, 6, 4], backgroundColor: 'rgba(239,68,68,0.7)', borderRadius: 5 },
+              { label: 'Preventivos', data: [12, 14, 11, 15, 13, 14], backgroundColor: 'rgba(45,212,191,0.7)', borderRadius: 5 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 12 } } }, scales: { x: { ticks: { font: { size: 10 } } }, y: { ticks: { font: { size: 10 } }, beginAtZero: true } } }
         });
-        document.getElementById('count-good').innerText = counts.good;
-        document.getElementById('count-warning').innerText = counts.warning;
-        document.getElementById('count-danger').innerText = counts.danger;
-    }
+      }
+      var ctx2 = document.getElementById('chart-ots');
+      if (ctx2 && !chartOts) {
+        chartOts = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: ['Abiertas', 'En Progreso', 'Completadas'],
+            datasets: [{ data: [3, 1, 12], backgroundColor: ['#fbbf24', '#60a5fa', '#34d399'], borderWidth: 0 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } } }, cutout: '65%' }
+        });
+      }
+      var ctx3 = document.getElementById('chart-kpi');
+      if (ctx3 && !chartKpi) {
+        chartKpi = new Chart(ctx3, {
+          type: 'radar',
+          data: {
+            labels: ['Disponibilidad', 'Rendimiento', 'Calidad', 'MTBF', 'Cumplimiento'],
+            datasets: [{ label: 'KPI Planta', data: [89, 92, 95, 75, 88], backgroundColor: 'rgba(139,92,246,0.2)', borderColor: '#8b5cf6', pointBackgroundColor: '#8b5cf6', borderWidth: 2, pointRadius: 3 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { ticks: { display: false }, grid: { color: 'rgba(0,0,0,0.08)' }, pointLabels: { font: { size: 9 } }, min: 0, max: 100 } } }
+        });
+      }
+    }, 400);
+  }
 
-    function ejecutarCierre() {
-        if(document.getElementById('pass-ot').value === "1903") {
-            const m = seleccionado;
-            
-            // Cuerpo del correo formal
-            const asunto = `MANTENIMIENTO PREVENTIVO EXITOSA - ${m.id}`;
-            const cuerpoMail = `Estimados Gerentes, Directores y Equipo de Operaciones:\n\nPor medio del presente, el departamento de Mantenimiento les informa que se ha completado con éxito el Mantenimiento Preventivo programado para la siguiente unidad:\nSe confirma que el Mantenimiento Preventivo de la Máquina ${m.id} ha CULMINADO EXITOSAMENTE.\n\nEquipo:${m.id}\nUbicación:${m.nave}\nEstado: Operativo 100%\nHoras Reseteadas: 0\n\nResultados de la Intervención:
+  /* ---- NOTIFICACIÓN ---- */
+  function notif(msg) {
+    var el = document.getElementById('notif');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(function () { el.style.display = 'none'; }, 3000);
+  }
 
-1. Se realizaron todas las tareas de inspección, lubricación y ajustes técnicos según el protocolo de seguridad.
-2. El equipo ha sido sometido a pruebas de funcionamiento en vacío, respondiendo de manera satisfactoria y cumpliendo con los estándares de calidad requeridos.
-3. El contador de horas ha sido reiniciado en el sistema CMMS PRO para el inicio del nuevo ciclo.
-
-A partir de este momento, la máquina queda a disposición del equipo de producción para retomar sus labores habituales de forma segura y eficiente.
-
-Agradecemos la coordinación previa para permitir esta ventana de mantenimiento, la cual asegura la confiabilidad de nuestros procesos industriales.
-
-Atentamente,
-
-[Firma Jedrik Peña]
-Departamento de Mantenimiento
-Aurora CMMS PRO,.`;
-            
-            // MÉTODO MODERNO: Abre el cliente de correo en una ventana/pestaña nueva (_blank)
-            const mailtoUrl = `mailto:Humberto1988hudl@gmail.com?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpoMail)}`;
-            window.open(mailtoUrl, '_blank');
-            
-            // Reset de horas en el sistema
-            m.h = 0;
-
-            // Mensaje de Excelencia
-            alert(`🌟 EXCELENTE TRABAJO TÉCNICO 🌟\n\nLa culminación del mantenimiento preventivo del equipo ${m.id} ha sido exitosa.\n\nEl sistema ha reseteado las horas y notificado a gerencia.`);
-
-            cerrarModal();
-            render('all');
-        } else { 
-            
-            alert("❌ Clave técnica incorrecta."); }
-    }
-
-    function showSection(id) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('section-' + id).classList.add('active');
-        event.currentTarget.classList.add('active');
-    }
-
-    function cerrarModal() { document.getElementById('modal-ot').style.display = 'none'; document.getElementById('pass-ot').value = ''; }
-    function exportarExcel() { const ws = XLSX.utils.json_to_sheet(maquinas); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "Reporte_Aurora.xlsx"); }
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+  /* ---- RELOJ ---- */
+  setInterval(function () {
+    var el = document.getElementById('clock');
+    if (el) el.textContent = new Date().toLocaleTimeString('es-DO');
+  }, 1000);
 </script>
 </body>
 </html>
+
