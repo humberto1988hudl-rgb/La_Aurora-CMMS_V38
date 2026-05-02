@@ -1,397 +1,585 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AURORA CMMS PRO — V74</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1e293b;font-size:14px}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AURORA CMMS PRO — V79</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1e293b;font-size:14px}
 
-    /* ===== LOGIN ===== */
-    #login-screen{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999}
-    .login-box{background:white;padding:38px 34px;border-radius:20px;width:310px;text-align:center}
-    .login-logo{width:78px;height:78px;border-radius:50%;background:#0f172a;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;border:3px solid #2dd4bf;font-size:26px;color:#2dd4bf;font-weight:900}
-    .login-box h2{color:#1e293b;font-size:1rem;margin-bottom:18px;letter-spacing:2px;font-weight:800}
-    .login-box input{width:100%;padding:13px;text-align:center;border:2px solid #e2e8f0;border-radius:10px;font-size:1.3rem;letter-spacing:6px;outline:none;transition:.2s}
-    .login-box input:focus{border-color:#2dd4bf}
-    .login-box button{width:100%;padding:13px;margin-top:12px;background:#0f172a;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:800;font-size:0.85rem;letter-spacing:1px;transition:.2s}
-    .login-box button:hover{background:#1e3a5f}
-    .login-hint{margin-top:10px;font-size:0.7rem;color:#94a3b8}
+/* LOGIN */
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;
+  background-image:url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1920&q=80');
+  background-size:cover;background-position:center}
+#login-screen::before{content:'';position:absolute;inset:0;background:rgba(8,16,32,0.75);backdrop-filter:blur(3px)}
+.login-box{position:relative;z-index:1;background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.13);padding:44px 38px;border-radius:24px;width:340px;text-align:center;
+  box-shadow:0 25px 60px rgba(0,0,0,0.5)}
+.login-logo-img{width:110px;height:110px;border-radius:50%;background:white;display:flex;align-items:center;
+  justify-content:center;margin:0 auto 16px;border:3px solid #2dd4bf;overflow:hidden;
+  box-shadow:0 0 0 6px rgba(45,212,191,0.2)}
+.login-logo-img img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.login-box h2{color:white;font-size:1rem;margin-bottom:4px;letter-spacing:3px;font-weight:800}
+.login-sub{color:#64748b;font-size:0.7rem;margin-bottom:20px;letter-spacing:1px}
+.login-box input{width:100%;padding:14px;text-align:center;border:2px solid rgba(255,255,255,0.15);
+  border-radius:12px;font-size:1.3rem;letter-spacing:8px;outline:none;transition:.2s;
+  background:rgba(255,255,255,0.1);color:white}
+.login-box input::placeholder{letter-spacing:2px;font-size:0.9rem;color:#475569}
+.login-box input:focus{border-color:#2dd4bf;background:rgba(255,255,255,0.15)}
+.login-box button{width:100%;padding:14px;margin-top:14px;background:linear-gradient(135deg,#2dd4bf,#0f766e);
+  color:white;border:none;border-radius:12px;cursor:pointer;font-weight:800;font-size:0.9rem;
+  letter-spacing:1px;transition:.2s;box-shadow:0 4px 20px rgba(45,212,191,0.3)}
+.login-box button:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(45,212,191,0.4)}
+.login-hint{margin-top:10px;font-size:0.68rem;color:rgba(255,255,255,0.25)}
 
-    /* ===== LAYOUT ===== */
-    #app{display:none;flex-direction:row;height:100vh}
-    #sidebar{width:215px;min-width:215px;background:#0f172a;color:white;display:flex;flex-direction:column;overflow-y:auto}
-    #main{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;background:#f0f4f8}
+/* APP LAYOUT */
+#app{display:none;flex-direction:row;height:100vh}
+#sidebar{width:220px;min-width:220px;background:#0f172a;color:white;display:flex;flex-direction:column;overflow-y:auto}
+#main-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#main{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;background:#f0f4f8}
 
-    /* ===== SIDEBAR ===== */
-    .sb-top{padding:18px 16px 14px;border-bottom:1px solid #1e3a5f}
-    .sb-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .sb-icon{width:42px;height:42px;border-radius:50%;background:#1e3a5f;display:flex;align-items:center;justify-content:center;font-weight:900;color:#2dd4bf;font-size:15px;flex-shrink:0}
-    .sb-name{font-size:0.82rem;font-weight:700;color:white;letter-spacing:.5px}
-    .sb-role{font-size:0.65rem;color:#2dd4bf;font-family:monospace}
-    .sb-clock{font-family:monospace;font-size:0.75rem;color:#475569;text-align:center;padding:8px 12px;background:#080e1a}
-    .sb-turn{display:flex;gap:6px;margin-top:8px}
-    .sb-turn button{flex:1;padding:5px 2px;border:1px solid #334155;background:none;color:#64748b;border-radius:5px;cursor:pointer;font-size:0.62rem;font-weight:700;transition:.2s}
-    .sb-turn button.active-turn{background:#2dd4bf;color:#0f172a;border-color:#2dd4bf}
-    .nav-group{padding:12px 16px 3px;font-size:0.58rem;color:#475569;text-transform:uppercase;font-weight:800;letter-spacing:1px}
-    .nav-item{padding:10px 16px;display:flex;align-items:center;gap:9px;color:#94a3b8;cursor:pointer;transition:.15s;font-size:0.8rem;border-left:3px solid transparent;position:relative}
-    .nav-item:hover,.nav-item.active{background:#1e293b;color:white;border-left-color:#2dd4bf}
-    .nav-badge{background:#ef4444;color:white;border-radius:10px;padding:1px 6px;font-size:0.6rem;font-weight:800;position:absolute;right:12px}
-    .sb-footer{margin-top:auto;padding:14px}
-    .btn-salir{width:100%;padding:10px;background:#7f1d1d;color:white;border:none;border-radius:7px;cursor:pointer;font-weight:800;font-size:0.75rem;letter-spacing:1px}
-    .btn-salir:hover{background:#991b1b}
+/* SIDEBAR */
+.sb-top{padding:16px 14px 12px;border-bottom:1px solid #1e3a5f}
+.sb-logo-circle{width:96px;height:96px;border-radius:50%;background:white;border:3px solid #2dd4bf;
+  overflow:hidden;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;
+  box-shadow:0 0 0 4px rgba(45,212,191,0.15)}
+.sb-logo-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.sb-logo-fallback{width:100%;height:100%;background:linear-gradient(135deg,#1e3a5f,#0f172a);
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sb-logo-fallback span:first-child{font-size:14px;color:#2dd4bf;font-weight:900;text-align:center;line-height:1.3}
+.sb-logo-fallback span:last-child{font-size:7px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.sb-user{text-align:center;margin-bottom:8px}
+.sb-name{font-size:0.8rem;font-weight:700;color:white;letter-spacing:.5px}
+.sb-role{font-size:0.62rem;color:#2dd4bf;font-family:monospace}
+.sb-clock{font-family:monospace;font-size:0.75rem;color:#475569;text-align:center;padding:6px 10px;background:#080e1a}
+.sb-turn-row{display:flex;gap:4px;margin-top:8px}
+.sb-turn-btn{flex:1;padding:5px 2px;border:1px solid #334155;background:none;color:#475569;border-radius:5px;
+  font-size:0.6rem;font-weight:700;text-align:center;user-select:none;cursor:default}
+.sb-turn-btn.active{background:#2dd4bf;color:#0f172a;border-color:#2dd4bf}
+.sb-turn-auto{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px;
+  font-size:0.58rem;color:#475569}
+.auto-dot{width:6px;height:6px;background:#2dd4bf;border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.nav-group{padding:10px 14px 2px;font-size:0.57rem;color:#475569;text-transform:uppercase;font-weight:800;letter-spacing:1px}
+.nav-item{padding:9px 14px;display:flex;align-items:center;gap:8px;color:#94a3b8;cursor:pointer;
+  transition:.15s;font-size:0.78rem;border-left:3px solid transparent;position:relative}
+.nav-item:hover,.nav-item.active{background:#1e293b;color:white;border-left-color:#2dd4bf}
+.nav-badge{background:#ef4444;color:white;border-radius:10px;padding:1px 6px;font-size:0.58rem;font-weight:800;position:absolute;right:10px}
+.sb-footer{margin-top:auto;padding:12px}
+.btn-salir{width:100%;padding:9px;background:#7f1d1d;color:white;border:none;border-radius:7px;cursor:pointer;font-weight:800;font-size:0.73rem}
+.btn-salir:hover{background:#991b1b}
 
-    /* ===== VISTAS ===== */
-    .view{display:none;flex-direction:column;gap:16px}
-    .view.active{display:flex}
-    .page-title{font-size:0.68rem;font-weight:800;color:#2dd4bf;text-transform:uppercase;letter-spacing:2px;border-left:4px solid #2dd4bf;padding-left:10px}
+/* CONFIG BAR */
+.config-bar{background:#1e293b;color:#64748b;padding:5px 14px;font-size:0.63rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+.config-bar input[type="email"]{background:#0f172a;border:1px solid #334155;color:#2dd4bf;border-radius:4px;padding:2px 7px;font-size:0.63rem;width:200px;outline:none}
+.config-bar input[type="number"]{background:#0f172a;border:1px solid #334155;color:#f59e0b;border-radius:4px;padding:2px 7px;font-size:0.63rem;width:70px;outline:none}
 
-    /* ===== CARDS RESUMEN ===== */
-    .summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-    .sum-card{background:white;padding:16px;border-radius:10px;border:1px solid #e2e8f0;border-bottom:4px solid #e2e8f0;text-align:center}
-    .sum-card h1{font-size:1.9rem;font-weight:900;margin-bottom:3px}
-    .sum-card p{font-size:0.6rem;font-weight:800;color:#64748b;letter-spacing:1px;text-transform:uppercase}
-    .sum-card.ok{border-bottom-color:#2dd4bf}.sum-card.ok h1{color:#0f766e}
-    .sum-card.prev{border-bottom-color:#f59e0b}.sum-card.prev h1{color:#b45309}
-    .sum-card.ot{border-bottom-color:#ef4444}.sum-card.ot h1{color:#b91c1c}
-    .sum-card.kpi{border-bottom-color:#8b5cf6}.sum-card.kpi h1{color:#6d28d9}
+/* VIEWS */
+.view{display:none;flex-direction:column;gap:14px}
+.view.active{display:flex}
+.page-title{font-size:0.67rem;font-weight:800;color:#2dd4bf;text-transform:uppercase;letter-spacing:2px;border-left:4px solid #2dd4bf;padding-left:10px}
 
-    /* ===== GRID MÁQUINAS ===== */
-    .machine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:8px}
-    .pmb-card{background:white;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;cursor:pointer;transition:.2s}
-    .pmb-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-    .pmb-head{height:4px;background:#2dd4bf}
-    .pmb-body{padding:8px;text-align:center}
-    .pmb-body h4{font-size:0.75rem;margin-bottom:1px;color:#1e293b;font-weight:700}
-    .pmb-body span{font-size:0.65rem;color:#64748b}
-    .pmb-footer{display:flex;justify-content:space-between;padding:4px 7px;background:#f8fafc;font-size:0.58rem;font-weight:700;color:#94a3b8;border-top:1px solid #f1f5f9}
-    .pmb-card.mtto{border-color:#fca5a5;animation:pulse-red 1.5s infinite}
-    .pmb-card.mtto .pmb-head{background:#ef4444}
-    .pmb-card.prev-due{border-color:#fde68a}
-    .pmb-card.prev-due .pmb-head{background:#f59e0b}
-    @keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.65}}
+/* SUMMARY CARDS */
+.summary-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.sum-card{background:white;padding:14px 10px;border-radius:10px;border:1px solid #e2e8f0;border-bottom:4px solid #e2e8f0;text-align:center}
+.sum-card h1{font-size:1.7rem;font-weight:900;margin-bottom:2px}
+.sum-card p{font-size:0.58rem;font-weight:800;color:#64748b;letter-spacing:.8px;text-transform:uppercase}
+.sum-card.ok{border-bottom-color:#2dd4bf}.sum-card.ok h1{color:#0f766e}
+.sum-card.prev{border-bottom-color:#f59e0b}.sum-card.prev h1{color:#b45309}
+.sum-card.ot{border-bottom-color:#ef4444}.sum-card.ot h1{color:#b91c1c}
+.sum-card.kpi{border-bottom-color:#8b5cf6}.sum-card.kpi h1{color:#6d28d9}
+.sum-card.cost{border-bottom-color:#dc2626}.sum-card.cost h1{color:#dc2626;font-size:1.3rem}
 
-    /* ===== TARJETAS GENÉRICAS ===== */
-    .card{background:white;padding:20px;border-radius:12px;border:1px solid #e2e8f0}
-    .card h3{font-size:0.75rem;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f1f5f9}
-    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+/* PLANT TABS */
+.plant-tabs{display:flex;gap:8px;margin-bottom:4px}
+.plant-tab{padding:8px 20px;border:2px solid #e2e8f0;background:white;border-radius:8px;cursor:pointer;
+  font-size:0.78rem;font-weight:800;color:#64748b;transition:.2s;letter-spacing:.5px}
+.plant-tab:hover{border-color:#94a3b8}
+.plant-tab.active-arena{background:#0f172a;color:#2dd4bf;border-color:#2dd4bf}
+.plant-tab.active-phoenix{background:#78350f;color:#fbbf24;border-color:#f59e0b}
+.plant-container{display:none;flex-direction:column;gap:10px}
+.plant-container.active{display:flex}
 
-    /* ===== FORMULARIOS ===== */
-    .field{margin-bottom:10px}
-    .field label{display:block;font-size:0.62rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-    .field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:7px;font-size:0.85rem;outline:none;transition:.2s;font-family:inherit}
-    .field input:focus,.field select:focus,.field textarea:focus{border-color:#2dd4bf}
-    .field textarea{resize:vertical;min-height:70px}
+/* MACHINE SECTIONS */
+.m-section{background:white;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden}
+.m-section-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
+  cursor:pointer;transition:.2s;user-select:none}
+.m-section-header:hover{background:#f8fafc}
+.m-section-title{display:flex;align-items:center;gap:10px}
+.m-section-name{font-size:0.82rem;font-weight:800;color:#1e293b;letter-spacing:.5px}
+.m-section-total{font-size:0.65rem;color:#64748b;background:#f1f5f9;padding:2px 8px;border-radius:10px;font-weight:700}
+.m-section-stats{display:flex;gap:8px;font-size:0.65rem}
+.m-stat-ok{color:#0f766e;font-weight:800}.m-stat-ot{color:#b91c1c;font-weight:800}.m-stat-cost{color:#dc2626;font-weight:800}
+.m-section-arrow{font-size:0.7rem;color:#94a3b8;transition:.3s}
+.m-section-body{padding:10px;border-top:1px solid #f1f5f9}
+.m-section-body.collapsed{display:none}
+.machine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.machine-grid.small{grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:6px}
 
-    /* ===== BOTONES ===== */
-    .btn-row{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{padding:9px 16px;border:none;border-radius:7px;cursor:pointer;font-size:0.75rem;font-weight:800;transition:.2s;letter-spacing:.5px}
-    .btn:active{transform:translateY(1px)}
-    .btn-p{background:#0f172a;color:white}.btn-p:hover{background:#1e3a5f}
-    .btn-g{background:#0f766e;color:white}.btn-g:hover{background:#0d9488}
-    .btn-a{background:#b45309;color:white}.btn-a:hover{background:#d97706}
-    .btn-s{background:#475569;color:white}.btn-s:hover{background:#334155}
-    .btn-r{background:#b91c1c;color:white}.btn-r:hover{background:#dc2626}
-    .btn-o{background:white;border:1px solid #ef4444;color:#b91c1c}.btn-o:hover{background:#fef2f2}
-    .btn-export{background:#166534;color:white;padding:8px 14px;border:none;border-radius:7px;cursor:pointer;font-size:0.72rem;font-weight:800}
+/* PMB CARDS */
+.pmb-card{background:white;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;cursor:pointer;transition:.2s;position:relative}
+.pmb-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.pmb-head{height:4px;background:#2dd4bf}
+.pmb-body{padding:8px 6px;text-align:center}
+.pmb-body h4{font-size:0.72rem;margin-bottom:1px;color:#1e293b;font-weight:800}
+.pmb-hrs{font-size:0.62rem;color:#64748b}
+.pmb-footer{display:flex;justify-content:space-between;padding:3px 6px;background:#f8fafc;font-size:0.57rem;font-weight:700;color:#94a3b8;border-top:1px solid #f1f5f9}
+.pmb-card.mtto{border:2px solid #ef4444;animation:pulse-red 1.5s infinite}
+.pmb-card.mtto .pmb-head{background:#ef4444;height:5px}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 7px rgba(239,68,68,0)}}
+.pmb-card.prev-due{border-color:#fde68a}.pmb-card.prev-due .pmb-head{background:#f59e0b}
+.pmb-tech-row{background:#0f172a;color:white;padding:4px 6px;display:flex;align-items:center;gap:4px;font-size:0.58rem;font-weight:700}
+.pmb-tech-av{width:16px;height:16px;border-radius:50%;background:#2dd4bf;color:#0f172a;display:flex;align-items:center;justify-content:center;font-size:0.5rem;font-weight:900;flex-shrink:0}
+.pmb-tech-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e2e8f0}
+.pmb-cost-tag{font-size:0.55rem;color:#fca5a5;white-space:nowrap}
 
-    /* ===== RESULTADOS CALCULADORAS ===== */
-    .result-box{margin-top:12px;padding:13px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;display:none}
-    .result-box h4{font-size:0.65rem;font-weight:800;color:#0369a1;margin-bottom:9px;text-transform:uppercase}
-    .res-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #e0f2fe;font-size:0.82rem}
-    .res-row:last-child{border-bottom:none}
-    .res-val{font-weight:700;color:#0f172a}
-    .kpi-box{background:#0f172a;color:#2dd4bf;padding:12px;border-radius:8px;margin-top:10px;text-align:center;font-size:1rem;font-weight:800}
+/* CARDS */
+.card{background:white;padding:18px;border-radius:12px;border:1px solid #e2e8f0}
+.card h3{font-size:0.73rem;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f1f5f9}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.field{margin-bottom:9px}
+.field label{display:block;font-size:0.6rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.field input,.field select,.field textarea{width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:0.84rem;outline:none;transition:.2s;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#2dd4bf}
+.field textarea{resize:vertical;min-height:65px}
+.btn-row{display:flex;gap:7px;flex-wrap:wrap}
+.btn{padding:8px 14px;border:none;border-radius:7px;cursor:pointer;font-size:0.73rem;font-weight:800;transition:.2s;letter-spacing:.5px}
+.btn:active{transform:translateY(1px)}
+.btn-p{background:#0f172a;color:white}.btn-p:hover{background:#1e3a5f}
+.btn-g{background:#0f766e;color:white}.btn-g:hover{background:#0d9488}
+.btn-a{background:#b45309;color:white}.btn-a:hover{background:#d97706}
+.btn-s{background:#475569;color:white}.btn-s:hover{background:#334155}
+.btn-r{background:#b91c1c;color:white}.btn-r:hover{background:#dc2626}
+.btn-o{background:white;border:1px solid #ef4444;color:#b91c1c}.btn-o:hover{background:#fef2f2}
+.btn-export{background:#166534;color:white;padding:7px 12px;border:none;border-radius:7px;cursor:pointer;font-size:0.7rem;font-weight:800}
+.btn-icon{padding:5px 9px;border:none;border-radius:5px;cursor:pointer;font-size:0.72rem;font-weight:700;transition:.2s}
 
-    /* ===== TABLA OTs ===== */
-    .ot-table-wrap{overflow-x:auto}
-    table{width:100%;border-collapse:collapse;font-size:0.78rem}
-    thead{background:#f1f5f9}
-    th{padding:10px 12px;text-align:left;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#475569;white-space:nowrap}
-    td{padding:9px 12px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top}
-    tbody tr:hover{background:#f8fafc}
-    .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
-    .badge-open{background:#fef3c7;color:#92400e}
-    .badge-prog{background:#dbeafe;color:#1e40af}
-    .badge-done{background:#dcfce7;color:#166534}
-    .badge-cancel{background:#f1f5f9;color:#475569}
+/* COSTO PANEL */
+.cost-panel{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:12px;padding:16px 20px;color:white;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:2px}
+.cost-item{text-align:center}
+.cost-item .lbl{font-size:0.6rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px}
+.cost-item .val{font-size:1.4rem;font-weight:900;color:#fca5a5}
+.cost-item .val.green{color:#2dd4bf}
+.cost-item .val.yellow{color:#fbbf24}
+.cost-item .sub{font-size:0.62rem;color:#475569;margin-top:2px}
 
-    /* ===== BÚSQUEDAS Y FILTROS ===== */
-    .search-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
-    .search-input{flex:1;padding:10px 13px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.85rem;outline:none;transition:.2s}
-    .search-input:focus{border-color:#2dd4bf}
-    .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-    .filter-btn{padding:5px 12px;border:1px solid #e2e8f0;background:white;border-radius:20px;cursor:pointer;font-size:0.7rem;font-weight:700;color:#475569;transition:.2s}
-    .filter-btn:hover,.filter-btn.active{background:#0f172a;color:white;border-color:#0f172a}
+/* TÉCNICOS */
+.tec-table{width:100%;border-collapse:collapse;font-size:0.8rem}
+.tec-table thead{background:#f1f5f9}
+.tec-table th{padding:9px 12px;text-align:left;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#475569}
+.tec-table td{padding:8px 12px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:middle}
+.tec-table tbody tr:hover{background:#f8fafc}
+.tec-avatar{width:28px;height:28px;border-radius:50%;background:#1e3a5f;color:#2dd4bf;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:900}
+.tec-id-badge{background:#0f172a;color:#2dd4bf;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:800;font-family:monospace}
 
-    /* ===== PLAN PREVENTIVO ===== */
-    .prev-table-head{display:grid;grid-template-columns:80px 1fr 90px 90px 90px;background:#f1f5f9;padding:9px 12px;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#475569;border-radius:8px 8px 0 0}
-    .prev-table-row{display:grid;grid-template-columns:80px 1fr 90px 90px 90px;border-bottom:1px solid #f1f5f9;align-items:center;padding:8px 12px;font-size:0.78rem}
-    .prev-table-row:hover{background:#f8fafc}
+/* TABLA OT */
+.ot-table-wrap{overflow-x:auto}
+table.ot-table{width:100%;border-collapse:collapse;font-size:0.77rem}
+table.ot-table thead{background:#f1f5f9}
+table.ot-table th{padding:9px 11px;text-align:left;font-size:0.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#475569;white-space:nowrap}
+table.ot-table td{padding:8px 11px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top}
+table.ot-table tbody tr:hover{background:#f8fafc}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.badge-open{background:#fef3c7;color:#92400e}
+.badge-prog{background:#dbeafe;color:#1e40af}
+.badge-done{background:#dcfce7;color:#166534}
+.badge-cancel{background:#f1f5f9;color:#475569}
+.badge-anulada{background:#fce7f3;color:#9d174d}
+.badge-t1{background:#ede9fe;color:#5b21b6}
+.badge-t2{background:#fef3c7;color:#92400e}
+.badge-t3{background:#1e293b;color:#2dd4bf}
 
-    /* ===== BARRAS KPI ===== */
-    .oee-bar-wrap{background:#f1f5f9;border-radius:6px;height:12px;overflow:hidden;margin:5px 0 2px}
-    .oee-bar{height:100%;border-radius:6px;transition:.6s}
+/* PREVENTIVO */
+.prev-head{display:grid;grid-template-columns:80px 1fr 80px 90px 90px;background:#f1f5f9;padding:8px 11px;font-size:0.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#475569;border-radius:8px 8px 0 0}
+.prev-row{display:grid;grid-template-columns:80px 1fr 80px 90px 90px;border-bottom:1px solid #f1f5f9;align-items:center;padding:7px 11px;font-size:0.77rem}
+.prev-row:hover{background:#f8fafc}
 
-    /* ===== GRÁFICAS ===== */
-    .chart-wrap{position:relative;height:180px;margin-top:8px}
+/* KPI BARS */
+.bar-wrap{background:#f1f5f9;border-radius:6px;height:11px;overflow:hidden;margin:4px 0 2px}
+.bar-fill{height:100%;border-radius:6px;transition:.6s}
+.chart-wrap{position:relative;height:175px;margin-top:8px}
 
-    /* ===== MANUALES ===== */
-    .manual-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-    .manual-card{background:white;border-radius:10px;border:1px solid #e2e8f0;cursor:pointer;transition:.2s;text-align:center;padding:18px 10px}
-    .manual-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
-    .manual-icon{font-size:30px;margin-bottom:8px}
-    .manual-card h4{font-size:0.75rem;font-weight:800;color:#1e293b;margin-bottom:3px}
-    .manual-card span{font-size:0.65rem;color:#64748b}
+/* SAP */
+.sap-table{width:100%;border-collapse:collapse;font-size:0.78rem}
+.sap-table thead{background:#f1f5f9}
+.sap-table th{padding:9px 11px;text-align:left;font-size:0.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#475569}
+.sap-table td{padding:8px 11px;border-bottom:1px solid #f1f5f9;color:#334155}
+.sap-table tbody tr:hover{background:#f8fafc}
 
-    /* ===== MODAL ===== */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:8000}
-    .modal-box{background:white;padding:28px;border-radius:16px;width:330px;text-align:center}
-    .modal-box h3{font-size:0.95rem;font-weight:800;margin-bottom:5px}
-    .modal-box p{font-size:0.72rem;color:#64748b;margin-bottom:14px}
-    .modal-box input{width:100%;padding:13px;text-align:center;border:2px solid #e2e8f0;border-radius:10px;font-size:1rem;font-weight:800;letter-spacing:3px;outline:none;transition:.2s;margin-bottom:10px}
-    .modal-box input:focus{border-color:#2dd4bf}
-    .btn-confirm{width:100%;padding:12px;background:#2dd4bf;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:800;font-size:0.85rem}
-    .btn-confirm:hover{background:#0d9488}
-    .btn-cancel-m{margin-top:9px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.75rem}
+/* MANUALES */
+.manual-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.manual-card{background:white;border-radius:10px;border:1px solid #e2e8f0;cursor:pointer;transition:.2s;text-align:center;padding:16px 8px}
+.manual-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.manual-icon{font-size:28px;margin-bottom:7px}
+.manual-card h4{font-size:0.72rem;font-weight:800;color:#1e293b;margin-bottom:2px}
+.manual-card span{font-size:0.62rem;color:#64748b}
 
-    /* ===== NOTIFICACIÓN ===== */
-    .notification{position:fixed;bottom:20px;right:20px;background:#0f172a;color:white;padding:12px 18px;border-radius:10px;font-size:0.8rem;font-weight:700;z-index:9998;display:none;border-left:4px solid #2dd4bf;animation:slideIn .3s ease}
-    @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
-  </style>
+/* VISOR */
+#visor-panel{position:fixed;inset:0;background:rgba(8,16,32,0.95);z-index:7000;display:none;flex-direction:column}
+.visor-header{background:#0f172a;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #2dd4bf;flex-shrink:0}
+.visor-title{color:white;font-size:0.88rem;font-weight:800;letter-spacing:1px}
+.visor-body{flex:1;overflow:hidden;background:#1e293b;display:flex;align-items:center;justify-content:center}
+.visor-iframe{width:100%;height:100%;border:none}
+.visor-placeholder{color:#475569;text-align:center;padding:40px}
+.visor-upload-btn{display:inline-block;padding:8px 16px;background:#2dd4bf;color:#0f172a;border-radius:7px;cursor:pointer;font-weight:800;font-size:0.78rem;margin-top:14px}
+#visor-file-input{display:none}
+.visor-close{background:#ef4444;color:white;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:800;font-size:0.78rem}
+
+/* MODALES */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);display:none;align-items:center;justify-content:center;z-index:8000}
+.modal-box{background:white;padding:26px;border-radius:18px;width:380px;text-align:center;max-height:90vh;overflow-y:auto}
+.modal-box h3{font-size:0.95rem;font-weight:800;margin-bottom:5px;color:#1e293b}
+.modal-box p{font-size:0.73rem;color:#64748b;margin-bottom:12px;line-height:1.6}
+.modal-input{width:100%;padding:15px;text-align:center;border:2px solid #e2e8f0;border-radius:12px;
+  font-size:1.05rem;font-weight:800;letter-spacing:3px;outline:none;transition:.2s;margin-bottom:11px;font-family:monospace}
+.modal-input:focus{border-color:#2dd4bf}
+.modal-input.error{border-color:#ef4444;animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.btn-confirm-red{width:100%;padding:13px;background:#dc2626;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:800;font-size:0.87rem;margin-bottom:7px}
+.btn-confirm-red:hover{background:#b91c1c}
+.btn-confirm-green{width:100%;padding:13px;background:#0f766e;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:800;font-size:0.87rem;margin-bottom:7px}
+.btn-confirm-green:hover{background:#0d9488}
+.btn-cancel-m{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.73rem;padding:4px}
+.scanner-hint{display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.68rem;color:#94a3b8;margin-bottom:10px}
+.scanner-pulse{width:8px;height:8px;background:#2dd4bf;border-radius:50%;animation:blink 1s infinite}
+.modal-info-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:12px;text-align:left}
+.modal-info-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f1f5f9;font-size:0.76rem}
+.modal-info-row:last-child{border-bottom:none}
+.modal-info-lbl{color:#94a3b8;font-size:0.62rem;text-transform:uppercase;font-weight:700}
+.modal-info-val{font-weight:700;color:#1e293b}
+
+/* EMAIL */
+.email-preview{background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:12px;text-align:left;margin-bottom:12px;font-size:0.76rem}
+.email-lbl{font-size:0.58rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
+.email-val{color:#1e293b;font-weight:600;margin-bottom:7px}
+.email-body{background:white;border:1px solid #e2e8f0;border-radius:5px;padding:9px;font-size:0.73rem;color:#334155;line-height:1.6;max-height:120px;overflow-y:auto;white-space:pre-wrap;margin-top:5px}
+
+/* NOTIFICACIÓN */
+.notification{position:fixed;bottom:18px;right:18px;background:#0f172a;color:white;padding:11px 16px;border-radius:10px;font-size:0.78rem;font-weight:700;z-index:9998;display:none;border-left:4px solid #2dd4bf;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
+.notif-success{border-left-color:#2dd4bf}.notif-warn{border-left-color:#f59e0b}.notif-error{border-left-color:#ef4444}
+
+/* SEARCH */
+.search-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.search-input{flex:1;padding:9px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:0.83rem;outline:none;transition:.2s}
+.search-input:focus{border-color:#2dd4bf}
+.filter-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px}
+.filter-btn{padding:4px 11px;border:1px solid #e2e8f0;background:white;border-radius:20px;cursor:pointer;font-size:0.68rem;font-weight:700;color:#475569;transition:.2s}
+.filter-btn:hover,.filter-btn.active{background:#0f172a;color:white;border-color:#0f172a}
+.kpi-box{background:#0f172a;color:#2dd4bf;padding:11px;border-radius:8px;margin-top:9px;text-align:center;font-size:0.95rem;font-weight:800}
+.result-box{margin-top:10px;padding:11px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;display:none}
+.result-box h4{font-size:0.63rem;font-weight:800;color:#0369a1;margin-bottom:8px;text-transform:uppercase}
+.res-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #e0f2fe;font-size:0.8rem}
+.res-row:last-child{border-bottom:none}
+.res-val{font-weight:700;color:#0f172a}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 160px);min-height:400px}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px 10px 0 0}
+.chat-msg{display:flex;gap:10px;align-items:flex-start;max-width:85%}
+.chat-msg.me{align-self:flex-end;flex-direction:row-reverse}
+.chat-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900;flex-shrink:0}
+.chat-avatar.sys{background:#0f172a;color:#2dd4bf}
+.chat-avatar.me{background:#2dd4bf;color:#0f172a}
+.chat-bubble{padding:10px 14px;border-radius:12px;font-size:0.82rem;line-height:1.5;max-width:100%}
+.chat-bubble.sys{background:white;border:1px solid #e2e8f0;color:#1e293b;border-radius:4px 12px 12px 12px}
+.chat-bubble.me{background:#0f172a;color:white;border-radius:12px 4px 12px 12px}
+.chat-bubble.ai{background:linear-gradient(135deg,#ede9fe,#f0f9ff);border:1px solid #c4b5fd;color:#1e293b;border-radius:4px 12px 12px 12px}
+.chat-meta{font-size:0.6rem;color:#94a3b8;margin-top:3px}
+.chat-input-row{display:flex;gap:8px;padding:12px;background:white;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px}
+.chat-input{flex:1;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.85rem;outline:none;transition:.2s;font-family:inherit;resize:none;height:42px}
+.chat-input:focus{border-color:#2dd4bf}
+.chat-send-btn{padding:10px 16px;background:#0f172a;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:800;font-size:0.8rem;white-space:nowrap}
+.chat-send-btn:hover{background:#1e3a5f}
+.chat-typing{display:none;align-items:center;gap:6px;padding:8px 14px;background:white;border:1px solid #e2e8f0;border-radius:12px;font-size:0.75rem;color:#64748b;width:fit-content}
+.typing-dot{width:6px;height:6px;background:#2dd4bf;border-radius:50%;animation:tdot 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,80%,100%{transform:scale(0.8);opacity:.5}40%{transform:scale(1.1);opacity:1}}
+.chat-online-badge{display:inline-flex;align-items:center;gap:5px;background:#dcfce7;color:#166534;padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:800}
+.online-dot{width:6px;height:6px;background:#16a34a;border-radius:50%;animation:blink 1.5s infinite}
+
+/* ADMIN MODAL */
+.admin-badge{background:#7f1d1d;color:#fca5a5;padding:2px 8px;border-radius:10px;font-size:0.6rem;font-weight:800;margin-left:6px}
+
+/* LOGIN user display */
+.login-user-select{width:100%;padding:11px;border:2px solid rgba(255,255,255,0.15);border-radius:12px;font-size:0.9rem;outline:none;transition:.2s;background:rgba(255,255,255,0.1);color:white;margin-bottom:10px;cursor:pointer}
+.login-user-select option{background:#1e293b;color:white}
+.login-user-select:focus{border-color:#2dd4bf}
+.login-or{color:rgba(255,255,255,0.3);font-size:0.7rem;margin:4px 0;text-align:center}
+</style>
 </head>
 <body>
 
-<!-- ===================== LOGIN ===================== -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo">A</div>
+    <div class="login-logo-img">
+      <img src="https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/La%20Aurora%20CMMS.png?raw=true" alt="La Aurora"
+        onerror="this.parentElement.innerHTML='<div class=\'sb-logo-fallback\'><span>LA AURORA</span><span>CMMS PRO</span></div>'">
+    </div>
     <h2>AURORA CMMS PRO</h2>
-    <input type="password" id="pass" placeholder="PIN de acceso" onkeydown="if(event.key==='Enter')login()">
+    <div class="login-sub">SISTEMA DE GESTIÓN DE MANTENIMIENTO</div>
+    <input type="password" id="pass" placeholder="ID de carnet o PIN" onkeydown="if(event.key==='Enter')login()" autocomplete="off" style="letter-spacing:3px;margin-top:14px">
     <button onclick="login()">ACCEDER AL SISTEMA</button>
-    <p class="login-hint"></p> <!-- ===================== EN ESTE APARTADO MUESTRA LA CONTRASEÑA DE ENTRADA AL CMMS ===================== -->
+    <p class="login-hint">Ingrese su ID de carnet o PIN autorizado</p>
   </div>
 </div>
 
-<!-- ===================== APP ===================== -->
+<!-- APP -->
 <div id="app">
-
   <!-- SIDEBAR -->
   <nav id="sidebar">
     <div class="sb-top">
-      <div class="sb-logo-row">
-        <div class="sb-icon">A</div>
-        <div>
-          <div class="sb-name">H. GUERRERO</div>
-          <div class="sb-role">TÉCNICO CMMS</div>
-        </div>
+      <div class="sb-logo-circle">
+        <img src="https://github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/La%20Aurora%20CMMS.png?raw=true" alt="La Aurora"
+          onerror="this.parentElement.innerHTML='<div class=\'sb-logo-fallback\'><span>LA AURORA</span><span>CMMS PRO</span></div>'">
       </div>
+      <div class="sb-user"><div class="sb-name" id="sb-nombre">H. GUERRERO</div><div class="sb-role" id="sb-cargo">TÉCNICO CMMS</div></div>
       <div class="sb-clock" id="clock">00:00:00</div>
-      <div class="sb-turn">
-        <button class="active-turn" onclick="setTurn(this)">T1</button>
-        <button onclick="setTurn(this)">T2</button>
-        <button onclick="setTurn(this)">T3</button>
+      <div class="sb-turn-row">
+        <div class="sb-turn-btn" id="btn-t1" title="Turno 1: 6AM–3PM">T1</div>
+        <div class="sb-turn-btn" id="btn-t2" title="Turno 2: 3PM–11PM">T2</div>
+        <div class="sb-turn-btn" id="btn-t3" title="Turno 3: 11PM–6AM">T3</div>
       </div>
+      <div class="sb-turn-auto"><div class="auto-dot"></div><span id="turno-label">AUTO — T1</span></div>
     </div>
-
     <div class="nav-item active" onclick="nav('dash',this)">◼ Dashboard</div>
     <div class="nav-group">Órdenes de Trabajo</div>
     <div class="nav-item" onclick="nav('nueva-ot',this)">✚ Nueva OT</div>
     <div class="nav-item" onclick="nav('historial',this)">☰ Historial OT <span class="nav-badge" id="ot-badge">0</span></div>
-    <div class="nav-group">Preventivo</div>
+    <div class="nav-group">Mantenimiento</div>
     <div class="nav-item" onclick="nav('preventivo',this)">📅 Plan Preventivo</div>
-    <div class="nav-group">Operaciones</div>
+    <div class="nav-group">Configuración</div>
+    <div class="nav-item" onclick="navTecnicos(this)">👷 Técnicos <span class="admin-badge">ADMIN</span></div>
     <div class="nav-item" onclick="nav('sap',this)">⊕ Almacén SAP</div>
     <div class="nav-item" onclick="nav('manuals',this)">📖 Manuales</div>
     <div class="nav-group">Ingeniería</div>
     <div class="nav-item" onclick="nav('tools',this)">⚙ Calculadoras</div>
-    <div class="nav-item" onclick="nav('intel',this)">◈ KPI / Análisis</div>
-
-    <div class="sb-footer">
-      <button class="btn-salir" onclick="logout()">SALIR DEL SISTEMA</button>
-    </div>
+    <div class="nav-item" onclick="nav('intel',this)">◈ KPI / Costos</div>
+    <div class="nav-group">Comunicación</div>
+    <div class="nav-item" onclick="nav('chat',this)">💬 Chat IA <span class="nav-badge" id="chat-badge" style="display:none">!</span></div>
+    <div class="sb-footer"><button class="btn-salir" onclick="logout()">SALIR DEL SISTEMA</button></div>
   </nav>
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main id="main">
-
-    <!-- ===== DASHBOARD ===== -->
-    <div id="v-dash" class="view active">
-      <div class="page-title">Dashboard — Estado de Flota en Tiempo Real</div>
-      <div class="summary-row">
-        <div class="sum-card ok"><h1 id="cnt-ok">0</h1><p>Operativos</p></div>
-        <div class="sum-card prev"><h1 id="cnt-prev">0</h1><p>Preventivo</p></div>
-        <div class="sum-card ot"><h1 id="cnt-ot">0</h1><p>En Taller</p></div>
-        <div class="sum-card kpi"><h1 id="cnt-disp">—</h1><p>Disponibilidad</p></div>
-      </div>
-      <div class="two-col">
-        <div class="card">
-          <h3>Tendencia de Fallas — Últimos 6 Meses</h3>
-          <div class="chart-wrap"><canvas id="chart-fallas"></canvas></div>
-        </div>
-        <div class="card">
-          <h3>OTs por Estado</h3>
-          <div class="chart-wrap"><canvas id="chart-ots"></canvas></div>
-        </div>
-      </div>
-      <div class="page-title">Flota PMB — Nave Arena / Phoenix (48 máquinas)</div>
-      <div class="machine-grid" id="machine-grid"></div>
+  <div id="main-area">
+    <!-- CONFIG BAR -->
+    <div class="config-bar">
+      <span>📧</span>
+      <input type="email" id="cfg-email" value="DLEmpleadosArena@LaAurora.do" placeholder="correo@empresa.com">
+      <span style="color:#334155">|</span>
+      <span>💰 Costo/hr paro:</span>
+      <input type="number" id="cfg-costo" value="500" min="1" oninput="actualizarCostos()">
+      <span style="color:#f59e0b">USD/hr</span>
+      <span style="color:#334155">| Outlook se abre al liberar máquina</span>
     </div>
 
-    <!-- ===== NUEVA OT ===== -->
-    <div id="v-nueva-ot" class="view">
-      <div class="page-title">Nueva Orden de Trabajo</div>
-      <div class="two-col">
-        <div class="card">
-          <h3>Datos de la OT</h3>
-          <div class="two-col">
-            <div class="field"><label>Número OT</label><input type="text" id="ot-num" readonly style="background:#f8fafc;color:#64748b"></div>
-            <div class="field"><label>Fecha</label><input type="date" id="ot-fecha"></div>
-          </div>
-          <div class="two-col">
-            <div class="field"><label>Máquina / Equipo</label><select id="ot-equipo"></select></div>
-            <div class="field"><label>Tipo de Mantenimiento</label>
-              <select id="ot-tipo">
-                <option>Correctivo</option>
-                <option>Preventivo</option>
-                <option>Predictivo</option>
-                <option>Mejora</option>
-              </select>
-            </div>
-          </div>
-          <div class="two-col">
-            <div class="field"><label>Prioridad</label>
-              <select id="ot-prioridad">
-                <option value="Alta">🔴 Alta</option>
-                <option value="Media" selected>🟡 Media</option>
-                <option value="Baja">🟢 Baja</option>
-              </select>
-            </div>
-            <div class="field"><label>Técnico Asignado</label>
-              <select id="ot-tecnico">
-                <option>H. Guerrero</option>
-                <option>R. Martínez</option>
-                <option>J. Pérez</option>
-                <option>L. Santos</option>
-              </select>
-            </div>
-          </div>
-          <div class="field"><label>Descripción de la Falla</label><textarea id="ot-desc" placeholder="Describa la falla o trabajo a realizar..."></textarea></div>
-          <div class="field"><label>Trabajo Realizado</label><textarea id="ot-trabajo" placeholder="Acciones tomadas, repuestos usados..."></textarea></div>
-          <div class="two-col">
-            <div class="field"><label>Tiempo Estimado (hrs)</label><input type="number" id="ot-tiempo" value="2" min="0.5" step="0.5"></div>
-            <div class="field"><label>Hora de Inicio</label><input type="time" id="ot-hora"></div>
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-g" onclick="guardarOT('Abierta')">Abrir OT</button>
-            <button class="btn btn-p" onclick="guardarOT('En Progreso')">Iniciar Trabajo</button>
-            <button class="btn btn-a" onclick="guardarOT('Completada')">Completar OT</button>
-          </div>
-        </div>
-        <div class="card">
-          <h3>OTs Abiertas Recientes</h3>
-          <div id="ots-recientes" style="font-size:0.78rem;color:#64748b">No hay OTs abiertas.</div>
-          <div style="margin-top:20px">
-            <h3>Repuestos Utilizados</h3>
-            <div class="field"><label>Código SAP</label><input type="text" id="rep-sap" placeholder="Ej: 1004582"></div>
-            <div class="field"><label>Descripción</label><input type="text" id="rep-desc" placeholder="Descripción del repuesto"></div>
-            <div class="field"><label>Cantidad</label><input type="number" id="rep-qty" value="1" min="1"></div>
-            <button class="btn btn-s" onclick="addRepuesto()">Agregar Repuesto</button>
-            <div id="rep-list" style="margin-top:10px;font-size:0.78rem"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <main id="main">
 
-    <!-- ===== HISTORIAL OT ===== -->
-    <div id="v-historial" class="view">
-      <div class="page-title">Historial de Órdenes de Trabajo</div>
-      <div class="card" style="padding:16px 18px">
-        <div class="search-row">
-          <input class="search-input" id="ot-search" placeholder="Buscar por OT, equipo, técnico, descripción..." onkeyup="filtrarOTs(this.value)">
-          <button class="btn-export" onclick="exportarOTs()">⬇ Exportar CSV</button>
+      <!-- DASHBOARD -->
+      <div id="v-dash" class="view active">
+        <div class="page-title">Dashboard — Estado General de Planta</div>
+        <!-- COSTO PANEL -->
+        <div class="cost-panel">
+          <div class="cost-item"><div class="lbl">Costo Total de Paros</div><div class="val" id="cost-total">$0.00</div><div class="sub">todas las plantas</div></div>
+          <div class="cost-item"><div class="lbl">Costo Planta ARENA</div><div class="val yellow" id="cost-arena">$0.00</div><div class="sub" id="hrs-arena">0 hrs paradas</div></div>
+          <div class="cost-item"><div class="lbl">Costo Planta PHOENIX</div><div class="val yellow" id="cost-phoenix">$0.00</div><div class="sub" id="hrs-phoenix">0 hrs paradas</div></div>
         </div>
-        <div class="filter-row">
-          <button class="filter-btn active" onclick="filtrarEstado('Todas',this)">Todas</button>
-          <button class="filter-btn" onclick="filtrarEstado('Abierta',this)">Abiertas</button>
-          <button class="filter-btn" onclick="filtrarEstado('En Progreso',this)">En Progreso</button>
-          <button class="filter-btn" onclick="filtrarEstado('Completada',this)">Completadas</button>
+        <!-- SUMMARY CARDS -->
+        <div class="summary-row">
+          <div class="sum-card ok"><h1 id="cnt-ok">0</h1><p>Operativas</p></div>
+          <div class="sum-card prev"><h1 id="cnt-prev">0</h1><p>Preventivo</p></div>
+          <div class="sum-card ot"><h1 id="cnt-ot">0</h1><p>En Taller</p></div>
+          <div class="sum-card kpi"><h1 id="cnt-disp">—</h1><p>Disponibilidad</p></div>
+          <div class="sum-card cost"><h1 id="cnt-maquinas">0</h1><p>Total Máquinas</p></div>
         </div>
-        <div class="ot-table-wrap">
-          <table>
-            <thead>
-              <tr><th>OT #</th><th>Fecha</th><th>Equipo</th><th>Tipo</th><th>Técnico</th><th>Descripción</th><th>Estado</th><th>Hrs</th></tr>
-            </thead>
-            <tbody id="ot-tbody"></tbody>
-          </table>
-          <div id="ot-empty" style="text-align:center;padding:30px;color:#94a3b8;font-size:0.82rem">No hay órdenes de trabajo registradas aún.</div>
+        <div class="two-col">
+          <div class="card"><h3>Tendencia de Fallas — 6 Meses</h3><div class="chart-wrap"><canvas id="chart-fallas"></canvas></div></div>
+          <div class="card"><h3>OTs por Estado</h3><div class="chart-wrap"><canvas id="chart-ots"></canvas></div></div>
         </div>
+        <!-- PLANT TABS -->
+        <div class="plant-tabs">
+          <button class="plant-tab active-arena" onclick="setPlanta('ARENA',this)">🏭 ARENA</button>
+          <button class="plant-tab" onclick="setPlanta('PHOENIX',this)">🔥 PHOENIX</button>
+        </div>
+        <div id="plant-ARENA" class="plant-container active"></div>
+        <div id="plant-PHOENIX" class="plant-container"></div>
       </div>
-    </div>
 
-    <!-- ===== PLAN PREVENTIVO ===== -->
-    <div id="v-preventivo" class="view">
-      <div class="page-title">Plan de Mantenimiento Preventivo</div>
-      <div class="two-col">
-        <div class="card">
-          <h3>Agregar Tarea Preventiva</h3>
-          <div class="field"><label>Equipo</label><select id="prev-equipo"></select></div>
-          <div class="two-col">
-            <div class="field"><label>Frecuencia</label>
-              <select id="prev-freq">
-                <option>Diario</option>
-                <option selected>Semanal</option>
-                <option>Quincenal</option>
-                <option>Mensual</option>
-                <option>Trimestral</option>
-                <option>Semestral</option>
-                <option>Anual</option>
+      <!-- GESTIÓN DE TÉCNICOS -->
+      <div id="v-tecnicos" class="view">
+        <div class="page-title">Gestión de Técnicos — Registro desde CMMS</div>
+        <div class="two-col">
+          <div class="card">
+            <h3 id="tec-form-title">Registrar Nuevo Técnico</h3>
+            <input type="hidden" id="tec-edit-idx" value="-1">
+            <div class="field"><label>ID del Carnet (código de barras)</label><input type="text" id="tec-id" placeholder="Ej: T001 o HG001"></div>
+            <div class="field"><label>Nombre Completo</label><input type="text" id="tec-nombre" placeholder="Ej: Hugo Guerrero"></div>
+            <div class="field"><label>Cargo / Especialidad</label>
+              <select id="tec-cargo">
+                <option>Técnico Eléctrico</option>
+                <option>Técnico Mecánico</option>
+                <option>Técnico Senior</option>
+                <option>Técnico Jr.</option>
+                <option>Supervisor de Mantenimiento</option>
+                <option>Técnico de Instrumentación</option>
+                <option>Técnico PLC / Automatización</option>
               </select>
             </div>
-            <div class="field"><label>Próxima Fecha</label><input type="date" id="prev-fecha"></div>
+            <div class="field"><label>Turno Habitual</label>
+              <select id="tec-turno">
+                <option>T1 — 6:00 AM a 3:00 PM</option>
+                <option>T2 — 3:00 PM a 11:00 PM</option>
+                <option>T3 — 11:00 PM a 6:00 AM</option>
+              </select>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-g" onclick="guardarTecnico()">Guardar Técnico</button>
+              <button class="btn btn-s" onclick="cancelarEditTecnico()">Cancelar</button>
+            </div>
           </div>
-          <div class="field"><label>Tarea a Realizar</label><textarea id="prev-tarea" placeholder="Ej: Cambio de aceite, limpieza de filtros, calibración..."></textarea></div>
-          <div class="field"><label>Técnico Responsable</label>
-            <select id="prev-tecnico">
-              <option>H. Guerrero</option><option>R. Martínez</option><option>J. Pérez</option><option>L. Santos</option>
-            </select>
+          <div class="card">
+            <h3>Técnicos Registrados</h3>
+            <div style="overflow-x:auto">
+              <table class="tec-table">
+                <thead><tr><th></th><th>ID Carnet</th><th>Nombre</th><th>Cargo</th><th>Turno</th><th>Acciones</th></tr></thead>
+                <tbody id="tec-tbody"></tbody>
+              </table>
+              <div id="tec-empty" style="text-align:center;padding:24px;color:#94a3b8;font-size:0.8rem">No hay técnicos registrados. Agregue el primero a la izquierda.</div>
+            </div>
           </div>
-          <button class="btn btn-g" onclick="agregarPreventivo()" style="margin-top:4px">Agregar al Plan</button>
+        </div>
+      </div>
+
+      <!-- NUEVA OT -->
+      <div id="v-nueva-ot" class="view">
+        <div class="page-title">Nueva Orden de Trabajo</div>
+        <div class="two-col">
+          <div class="card">
+            <h3>Datos de la OT</h3>
+            <div class="two-col">
+              <div class="field"><label>Número OT</label><input type="text" id="ot-num" readonly style="background:#f8fafc;color:#64748b"></div>
+              <div class="field"><label>Fecha</label><input type="date" id="ot-fecha"></div>
+            </div>
+            <div class="two-col">
+              <div class="field"><label>Turno</label><input type="text" id="ot-turno" readonly style="background:#f8fafc;color:#6d28d9;font-weight:700"></div>
+              <div class="field"><label>Tipo</label>
+                <select id="ot-tipo"><option>Correctivo</option><option>Preventivo</option><option>Predictivo</option><option>Mejora</option></select>
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="field"><label>Planta</label>
+                <select id="ot-planta"><option>ARENA</option><option>PHOENIX</option></select>
+              </div>
+              <div class="field"><label>Máquina</label><select id="ot-equipo"></select></div>
+            </div>
+            <div class="two-col">
+              <div class="field"><label>Prioridad</label>
+                <select id="ot-prioridad"><option>🔴 Alta</option><option selected>🟡 Media</option><option>🟢 Baja</option></select>
+              </div>
+              <div class="field"><label>Técnico</label><select id="ot-tecnico"></select></div>
+            </div>
+            <div class="field"><label>Descripción de la Falla</label><textarea id="ot-desc" placeholder="Describa la falla..."></textarea></div>
+            <div class="field"><label>Trabajo Realizado</label><textarea id="ot-trabajo" placeholder="Acciones tomadas..."></textarea></div>
+            <div class="two-col">
+              <div class="field"><label>Tiempo (hrs)</label><input type="number" id="ot-tiempo" value="2" min="0.5" step="0.5"></div>
+              <div class="field"><label>Hora Inicio</label><input type="time" id="ot-hora"></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-g" onclick="guardarOT('Abierta')">Abrir OT</button>
+              <button class="btn btn-p" onclick="guardarOT('En Progreso')">Iniciar</button>
+              <button class="btn btn-a" onclick="guardarOT('Completada')">Completar</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>OTs Abiertas</h3>
+            <div id="ots-recientes" style="font-size:0.77rem;color:#94a3b8">No hay OTs abiertas.</div>
+            <div style="margin-top:18px">
+              <h3>Repuestos</h3>
+              <div class="field"><label>Código SAP</label><input type="text" id="rep-sap" placeholder="Ej: 1004582"></div>
+              <div class="field"><label>Descripción</label><input type="text" id="rep-desc" placeholder="Descripción del repuesto"></div>
+              <div class="field"><label>Cantidad</label><input type="number" id="rep-qty" value="1" min="1"></div>
+              <button class="btn btn-s" onclick="addRepuesto()">Agregar</button>
+              <div id="rep-list" style="margin-top:9px;font-size:0.76rem"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORIAL OT -->
+      <div id="v-historial" class="view">
+        <div class="page-title">Historial de Órdenes de Trabajo</div>
+        <div class="card" style="padding:14px 16px">
+          <div class="search-row">
+            <input class="search-input" id="ot-search" placeholder="Buscar por OT, equipo, técnico, turno..." onkeyup="renderOTs()">
+            <button class="btn-export" onclick="exportarOTs()">⬇ Exportar CSV</button>
+          </div>
+          <div class="filter-row">
+            <button class="filter-btn active" onclick="filtrarEstado('Todas',this)">Todas</button>
+            <button class="filter-btn" onclick="filtrarEstado('Abierta',this)">Abiertas</button>
+            <button class="filter-btn" onclick="filtrarEstado('En Progreso',this)">En Progreso</button>
+            <button class="filter-btn" onclick="filtrarEstado('Completada',this)">Completadas</button>
+            <button class="filter-btn" onclick="filtrarEstado('Anulada',this)">Anuladas</button>
+          </div>
+          <div class="ot-table-wrap">
+            <table class="ot-table">
+              <thead><tr><th>OT #</th><th>Fecha</th><th>Turno</th><th>Planta</th><th>Equipo</th><th>Tipo</th><th>Técnico</th><th>Descripción</th><th>Estado</th><th>Hrs</th></tr></thead>
+              <tbody id="ot-tbody"></tbody>
+            </table>
+            <div id="ot-empty" style="text-align:center;padding:28px;color:#94a3b8;font-size:0.8rem">No hay órdenes de trabajo registradas.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREVENTIVO -->
+      <div id="v-preventivo" class="view">
+        <div class="page-title">Plan de Mantenimiento Preventivo</div>
+        <div class="two-col">
+          <div class="card">
+            <h3>Agregar Tarea</h3>
+            <div class="field"><label>Planta</label><select id="prev-planta"><option>ARENA</option><option>PHOENIX</option></select></div>
+            <div class="field"><label>Equipo</label><select id="prev-equipo"></select></div>
+            <div class="two-col">
+              <div class="field"><label>Frecuencia</label>
+                <select id="prev-freq"><option>Diario</option><option selected>Semanal</option><option>Quincenal</option><option>Mensual</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select>
+              </div>
+              <div class="field"><label>Próxima Fecha</label><input type="date" id="prev-fecha"></div>
+            </div>
+            <div class="field"><label>Tarea</label><textarea id="prev-tarea" placeholder="Ej: Cambio de aceite, limpieza de filtros..."></textarea></div>
+            <div class="field"><label>Técnico</label><select id="prev-tecnico"></select></div>
+            <button class="btn btn-g" onclick="agregarPreventivo()">Agregar al Plan</button>
+          </div>
+          <div class="card">
+            <h3>Resumen</h3>
+            <div class="three-col">
+              <div class="sum-card ok" style="padding:10px"><h1 id="prev-cnt-ok" style="font-size:1.3rem">0</h1><p>Al día</p></div>
+              <div class="sum-card prev" style="padding:10px"><h1 id="prev-cnt-due" style="font-size:1.3rem">0</h1><p>Próximos</p></div>
+              <div class="sum-card ot" style="padding:10px"><h1 id="prev-cnt-venc" style="font-size:1.3rem">0</h1><p>Vencidos</p></div>
+            </div>
+            <div style="margin-top:12px;font-size:0.77rem;color:#475569;line-height:2.2">
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:4px 0"><span>Total tareas</span><strong id="prev-total">0</strong></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Cumplimiento</span><strong id="prev-cumplimiento" style="color:#0f766e">—</strong></div>
+            </div>
+          </div>
         </div>
         <div class="card">
-          <h3>Resumen del Plan</h3>
-          <div class="three-col">
-            <div class="sum-card ok" style="padding:12px"><h1 id="prev-cnt-ok" style="font-size:1.4rem">0</h1><p>Al día</p></div>
-            <div class="sum-card prev" style="padding:12px"><h1 id="prev-cnt-due" style="font-size:1.4rem">0</h1><p>Próximos</p></div>
-            <div class="sum-card ot" style="padding:12px"><h1 id="prev-cnt-venc" style="font-size:1.4rem">0</h1><p>Vencidos</p></div>
-          </div>
-          <div style="margin-top:14px;font-size:0.78rem;color:#475569;line-height:2">
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:5px 0"><span>Total tareas planificadas</span><strong id="prev-total">0</strong></div>
-            <div style="display:flex;justify-content:space-between;padding:5px 0"><span>Cumplimiento del mes</span><strong id="prev-cumplimiento" style="color:#0f766e">—</strong></div>
-          </div>
+          <h3>Tareas Programadas</h3>
+          <div class="prev-head"><span>Equipo</span><span>Tarea</span><span>Frec.</span><span>Próxima</span><span>Estado</span></div>
+          <div id="prev-list"></div>
+          <div id="prev-empty" style="text-align:center;padding:22px;color:#94a3b8;font-size:0.78rem">No hay tareas preventivas.</div>
         </div>
       </div>
-      <div class="card">
-        <h3>Tareas Programadas</h3>
-        <div class="prev-table-head"><span>Equipo</span><span>Tarea</span><span>Frecuencia</span><span>Próxima</span><span>Estado</span></div>
-        <div id="prev-list"></div>
-        <div id="prev-empty" style="text-align:center;padding:24px;color:#94a3b8;font-size:0.8rem">No hay tareas preventivas registradas aún.</div>
-      </div>
-    </div>
 
-    <!-- ===== SAP ===== -->
-    <div id="v-sap" class="view">
-      <div class="page-title">Almacén SAP — Búsqueda de Repuestos</div>
-      <div class="card" style="padding:16px 18px">
-        <input class="search-input" placeholder="Código o descripción del componente..." onkeyup="fSAP(this.value)" style="margin-bottom:12px">
-        <table>
-          <thead><tr><th>Código</th><th>Descripción</th><th>Stock</th><th>Ubicación</th><th>Unidad</th></tr></thead>
-          <tbody id="sap-tbody">
-            <tr><td>1004582</td><td>Sensor Inductivo M12 — Balluff</td><td style="color:#0f766e;font-weight:700">12</td><td>A-12-04</td><td>EA</td></tr>
-<tr><td>20068883</td><td>Termocupla tipo ojo</td><td style="color:#0f766e;font-weight:700">6</td><td>A-01-01</td><td>EA</td></tr>
+      <!-- SAP -->
+      <div id="v-sap" class="view">
+        <div class="page-title">Almacén SAP — Repuestos</div>
+        <div class="card" style="padding:14px 16px">
+          <input class="search-input" placeholder="Código o descripción..." onkeyup="fSAP(this.value)" style="margin-bottom:10px">
+          <table class="sap-table">
+            <thead><tr><th>Código</th><th>Descripción</th><th>Stock</th><th>Ubicación</th><th>Unidad</th></tr></thead>
+            <tbody id="sap-tbody">
+              <tr><td>20068883</td><td>Termocupla tipo ojo</td><td style="color:#0f766e;font-weight:700">6</td><td>A-01-01</td><td>EA</td></tr>
 <tr><td>20049925</td><td>Termocupla de rosca</td><td style="color:#0f766e;font-weight:700">5</td><td>A-01-02</td><td>EA</td></tr>
 <tr><td>20066989</td><td>Resistencia 120V</td><td style="color:#0f766e;font-weight:700">10</td><td>A-02-01</td><td>EA</td></tr>
 <tr><td>20055641</td><td>Resistencia Blades 7426F1</td><td style="color:#0f766e;font-weight:700">4</td><td>A-02-02</td><td>EA</td></tr>
@@ -493,637 +681,1269 @@
 <tr><td>20069746</td><td>Sensor manivela</td><td style="color:#0f766e;font-weight:700">2</td><td>C-01-20</td><td>EA</td></tr>
 <tr><td>20067743</td><td>Carbón motor Scandia</td><td style="color:#0f766e;font-weight:700">6</td><td>A-04-03</td><td>EA</td></tr>
 <tr><td>20067978</td><td>Electro Valvula 5-2 a 24 Vdc</td><td style="color:#0f766e;font-weight:700">10</td><td>A-04-04</td><td>EA</td></tr>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <!-- ===== MANUALES ===== -->
-    <div id="v-manuals" class="view">
-  <div class="page-title">Biblioteca Técnica — Manuales y Documentos</div>
+      <!-- MANUALES -->
+      <div id="v-manuals" class="view">
+        <div class="page-title">Biblioteca Técnica</div>
+        <div class="card" style="padding:10px 14px;background:#f0f9ff;border-color:#bae6fd;font-size:0.75rem;color:#0369a1;font-weight:700">
+          💡 Haga clic en cualquier manual para abrirlo dentro del CMMS. Use "Subir PDF" para cargar el archivo desde su PC.
+        </div>
+        <div class="manual-grid">
+          <div class="manual-card" onclick="abrirVisor('Manual PMB','')"><div class="manual-icon">📄</div><h4>Manual PMB</h4><span>V1.2 — Rev 2026</span></div>
+          <div class="manual-card" onclick="abrirVisor('Lógica PLC','')"><div class="manual-icon">💾</div><h4>Lógica PLC</h4><span>CX-Programmer</span></div>
+          <div class="manual-card" onclick="abrirVisor('Diagramas Eléctricos','')"><div class="manual-icon">⚡</div><h4>Diagramas Elec.</h4><span>Nave Arena</span></div>
+          <div class="manual-card" onclick="abrirVisor('Plan Preventivo 2026','')"><div class="manual-icon">🔧</div><h4>Plan Preventivo</h4><span>2026 Anual</span></div>
+          <div class="manual-card" onclick="abrirVisor('LOTO / Seguridad','')"><div class="manual-icon">📋</div><h4>LOTO / Seguridad</h4><span>Procedimientos</span></div>
+          <div class="manual-card" onclick="abrirVisor('Catálogo Rodamientos SKF','')"><div class="manual-icon">🔩</div><h4>Rodamientos SKF</h4><span>Catálogo 2025</span></div>
+          <div class="manual-card" onclick="abrirVisor('Normas NEC / NEMA','')"><div class="manual-icon">📐</div><h4>Normas Eléctricas</h4><span>NEC / NEMA</span></div>
+          <div class="manual-card" onclick="abrirVisor('Manual Maker','')"><div class="manual-icon">⚙</div><h4>Manual Maker</h4><span>Operación</span></div>
+          <div class="manual-card" onclick="abrirVisor('Manual Scandia','')"><div class="manual-icon">🔬</div><h4>Manual Scandia</h4><span>Rev 2025</span></div>
+          <div class="manual-card" onclick="abrirVisor('Manual TWS Etcher','')"><div class="manual-icon">🧪</div><h4>TWS Etcher</h4><span>Procedimiento</span></div>
+          <div class="manual-card" onclick="abrirVisor('Manual Combiner','')"><div class="manual-icon">🔗</div><h4>Combiner</h4><span>Manual</span></div>
+          <div class="manual-card" onclick="abrirVisor('Manual Crusher','')"><div class="manual-icon">💥</div><h4>Crusher</h4><span>Manual</span></div>
+        </div>
+      </div>
 
-  <div class="manual-grid">
+      <!-- CALCULADORAS -->
+      <div id="v-tools" class="view">
+        <div class="page-title">Calculadoras Técnicas</div>
+        <div class="two-col">
+          <div class="card">
+            <h3>Calculadora de Motores</h3>
+            <div class="two-col">
+              <div class="field"><label>Voltaje (V)</label><input type="number" id="m-v" value="480"></div>
+              <div class="field"><label>Corriente (A)</label><input type="number" id="m-a" value="10"></div>
+            </div>
+            <div class="two-col">
+              <div class="field"><label>Potencia (HP)</label><input type="number" id="m-hp" value="5"></div>
+              <div class="field"><label>Polos</label>
+                <select id="m-p"><option value="2">2 Polos — 3600 RPM</option><option value="4" selected>4 Polos — 1800 RPM</option><option value="6">6 Polos — 1200 RPM</option><option value="8">8 Polos — 900 RPM</option></select>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-p" onclick="calcMotor()">Calcular Motor</button>
+              <button class="btn btn-s" onclick="calcOhm()">Ley de Ohm</button>
+              <button class="btn btn-o" onclick="clearMotor()">Limpiar</button>
+            </div>
+            <div class="result-box" id="res-motor"><h4>Resultados</h4><div id="motor-data"></div></div>
+          </div>
+          <div class="card">
+            <h3>Conversor de Unidades</h3>
+            <div class="field"><label>Milímetros (mm)</label><input type="number" id="val-mm" oninput="convertMM()" placeholder="Ej: 25.4"></div>
+            <div style="font-size:0.8rem;line-height:2.7;color:#334155">
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0"><span style="color:#64748b">Pulgadas</span><strong id="res-in">—</strong></div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0"><span style="color:#64748b">Centímetros</span><strong id="res-cm">—</strong></div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0"><span style="color:#64748b">Metros</span><strong id="res-m">—</strong></div>
+              <div style="display:flex;justify-content:space-between;padding:2px 0"><span style="color:#64748b">Pies</span><strong id="res-ft">—</strong></div>
+            </div>
+            <div class="field" style="margin-top:14px"><label>Temperatura (°C)</label><input type="number" id="val-c" oninput="convertTemp()" placeholder="Grados Celsius"></div>
+            <div style="font-size:0.8rem;line-height:2.7;color:#334155">
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0"><span style="color:#64748b">Fahrenheit</span><strong id="res-f">—</strong></div>
+              <div style="display:flex;justify-content:space-between;padding:2px 0"><span style="color:#64748b">Kelvin</span><strong id="res-k">—</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div class="manual-card" onclick="window.open('https:github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/C-160.pdf')">
-      <div class="manual-icon">📄</div>
-      <h4>Manual PMB</h4>
-      <span>V1.2 — Rev 2026</span>
-    </div>
+      <!-- KPI / COSTOS -->
+      <div id="v-intel" class="view">
+        <div class="page-title">KPIs de Mantenimiento y Análisis de Costos</div>
+        <div class="two-col">
+          <div class="card">
+            <h3>Entrada de Datos del Mes</h3>
+            <div class="field"><label>Horas operativas del mes</label><input type="number" id="h-total" value="720" oninput="calcKPI()"></div>
+            <div class="field"><label>Número de fallas</label><input type="number" id="f-total" value="4" oninput="calcKPI()"></div>
+            <div class="field"><label>Horas totales de reparación</label><input type="number" id="h-rep" value="8" oninput="calcKPI()"></div>
+            <div class="field"><label>Eficiencia de rendimiento (%)</label><input type="number" id="efic" value="92" oninput="calcKPI()"></div>
+            <div class="field"><label>Calidad de producción (%)</label><input type="number" id="cal" value="95" oninput="calcKPI()"></div>
+            <div class="kpi-box" id="res-mtbf">MTBF: — hrs</div>
+          </div>
+          <div class="card">
+            <h3>Indicadores</h3>
+            <div style="font-size:0.8rem;color:#334155">
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:6px 0"><span style="color:#64748b">MTTR</span><strong id="res-mttr">—</strong></div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:6px 0"><span style="color:#64748b">Disponibilidad</span><strong id="res-disp">—</strong></div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:6px 0"><span style="color:#64748b">Rendimiento</span><strong id="res-rend">—</strong></div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:6px 0"><span style="color:#64748b">Calidad</span><strong id="res-cal">—</strong></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:#64748b;font-weight:800">OEE Total</span><strong id="res-oee" style="font-size:1rem;color:#0f766e">—</strong></div>
+            </div>
+            <div style="margin-top:12px">
+              <div style="font-size:0.6rem;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:2px">Disponibilidad</div>
+              <div class="bar-wrap"><div class="bar-fill" id="bar-disp" style="width:0%;background:#2dd4bf"></div></div>
+              <div style="font-size:0.6rem;font-weight:800;color:#64748b;text-transform:uppercase;margin:7px 0 2px">OEE</div>
+              <div class="bar-wrap"><div class="bar-fill" id="bar-oee" style="width:0%;background:#8b5cf6"></div></div>
+            </div>
+            <div class="chart-wrap" style="height:130px;margin-top:14px"><canvas id="chart-kpi"></canvas></div>
+          </div>
+        </div>
+      </div>
 
-    <div class="manual-card" onclick="window.open('https://raw.githubusercontent.com/USUARIO/repositorio/main/manuales/plc_logica.pdf','_blank')">
-      <div class="manual-icon">💾</div>
-      <h4>Lógica PLC</h4>
-      <span>CX-Programmer</span>
-    </div>
+      <!-- CHAT IA -->
+      <div id="v-chat" class="view">
+        <div class="page-title">Chat de Planta — Consultas y Soporte Técnico</div>
+        <!-- API KEY CONFIG -->
+        <div class="card" style="padding:12px 16px;border-color:#fde68a;background:#fffbeb">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:0.75rem;font-weight:800;color:#92400e">🔑 Clave API Anthropic:</span>
+            <input type="password" id="anthropic-key" placeholder="sk-ant-api03-..." 
+              style="flex:1;min-width:240px;padding:6px 10px;border:1px solid #fde68a;border-radius:6px;font-size:0.78rem;outline:none;font-family:monospace"
+              oninput="guardarAPIKey()">
+            <span id="api-key-status" style="font-size:0.7rem;color:#94a3b8">Sin clave</span>
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" 
+              style="font-size:0.68rem;color:#0369a1;text-decoration:none;font-weight:700">Obtener clave →</a>
+          </div>
+          <div style="font-size:0.65rem;color:#b45309;margin-top:4px">La clave se guarda localmente en su navegador y nunca se envía a terceros.</div>
+        </div>
+        <div class="card" style="padding:12px 16px;background:#f0f9ff;border-color:#bae6fd;font-size:0.75rem;color:#0369a1;font-weight:700;display:flex;justify-content:space-between;align-items:center">
+          <span>💬 Consultas técnicas de planta — directivos y técnicos pueden preguntar aquí</span>
+          <span class="chat-online-badge"><span class="online-dot"></span>Activo</span>
+        </div>
+        <div class="chat-wrap">
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg">
+              <div class="chat-avatar sys">AI</div>
+              <div>
+                <div class="chat-bubble sys">👋 Bienvenido al Chat de Soporte AURORA CMMS. Soy su asistente técnico. Puede preguntarme sobre mantenimiento, fallas, procedimientos, KPIs o cualquier duda técnica de planta. ¿En qué le puedo ayudar?</div>
+                <div class="chat-meta">Sistema · ahora</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-typing" id="chat-typing">
+            <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+            <span>IA escribiendo...</span>
+          </div>
+          <div class="chat-input-row">
+            <textarea class="chat-input" id="chat-input" placeholder="Escriba su consulta técnica... (Enter para enviar, Shift+Enter para nueva línea)"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarChat();}"></textarea>
+            <button class="chat-send-btn" onclick="enviarChat()">Enviar ▶</button>
+          </div>
+        </div>
+      </div>
 
-    <div class="manual-card" onclick="window.open('https://raw.githubusercontent.com/USUARIO/repositorio/main/manuales/diagramas.pdf','_blank')">
-      <div class="manual-icon">⚡</div>
-      <h4>Diagramas Elec.</h4>
-      <span>Nave Arena</span>
-    </div>
-
-    <div class="manual-card" onclick="window.open('https://raw.githubusercontent.com/USUARIO/repositorio/main/manuales/plan_preventivo.pdf','_blank')">
-      <div class="manual-icon">🔧</div>
-      <h4>Plan Preventivo</h4>
-      <span>2026 Anual</span>
-    </div>
-
-    <div class="manual-card" onclick="window.open('https:github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/LOTO_SEGURIDAD.pdf')">
-      <div class="manual-icon">📋</div>
-      <h4>LOTO / Seguridad</h4>
-      <span>Procedimientos</span>
-    </div>
-
-    <div class="manual-card" onclick="window.open('https://raw.githubusercontent.com/USUARIO/repositorio/main/manuales/historial.xlsx','_blank')">
-      <div class="manual-icon">📊</div>
-      <h4>Historial OT</h4>
-      <span>Export Excel</span>
-    </div>
-
-    <div class="manual-card" onclick="window.open('https:github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/Catalogo_Rodamiento.pdf')">
-      <div class="manual-icon">🔩</div>
-      <h4>Catálogo Rodamientos</h4>
-      <span>SKF 2025</span>
-    </div>
-
-    <div class="manual-card" onclick="window.open('https:github.com/humberto1988hudl-rgb/La_Aurora-CMMS_V38/blob/main/nec_nema_ratings.pdf')">
-      <div class="manual-icon">📐</div>
-      <h4>Normas Eléctricas</h4>
-      <span>NEC / NEMA</span>
-    </div>
-
+    </main>
   </div>
 </div>
 
-    <!-- ===== CALCULADORAS ===== -->
-    <div id="v-tools" class="view">
-      <div class="page-title">Calculadoras Técnicas de Ingeniería</div>
-      <div class="two-col">
-        <div class="card">
-          <h3>Calculadora de Motores</h3>
-          <div class="two-col">
-            <div class="field"><label>Voltaje (V)</label><input type="number" id="m-v" value="480"></div>
-            <div class="field"><label>Corriente (A)</label><input type="number" id="m-a" value="10"></div>
-          </div>
-          <div class="two-col">
-            <div class="field"><label>Potencia (HP)</label><input type="number" id="m-hp" value="5"></div>
-            <div class="field"><label>Polos</label>
-              <select id="m-p">
-                <option value="2">2 Polos — 3600 RPM</option>
-                <option value="4" selected>4 Polos — 1800 RPM</option>
-                <option value="6">6 Polos — 1200 RPM</option>
-                <option value="8">8 Polos — 900 RPM</option>
-              </select>
-            </div>
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-p" onclick="calcMotor()">Calcular Motor</button>
-            <button class="btn btn-s" onclick="calcOhm()">Ley de Ohm</button>
-            <button class="btn btn-o" onclick="clearMotor()">Limpiar</button>
-          </div>
-          <div class="result-box" id="res-motor">
-            <h4>Resultados Técnicos</h4>
-            <div id="motor-data"></div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>Conversor de Unidades</h3>
-          <div class="field"><label>Milímetros (mm)</label><input type="number" id="val-mm" oninput="convertMM()" placeholder="Ej: 25.4"></div>
-          <div style="font-size:0.82rem;line-height:2.8;color:#334155">
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0"><span style="color:#64748b">Pulgadas</span><strong id="res-in">—</strong></div>
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0"><span style="color:#64748b">Centímetros</span><strong id="res-cm">—</strong></div>
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0"><span style="color:#64748b">Metros</span><strong id="res-m">—</strong></div>
-            <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#64748b">Pies</span><strong id="res-ft">—</strong></div>
-          </div>
-          <div class="field" style="margin-top:16px"><label>Temperatura (°C)</label><input type="number" id="val-c" oninput="convertTemp()" placeholder="Grados Celsius"></div>
-          <div style="font-size:0.82rem;line-height:2.8;color:#334155">
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0"><span style="color:#64748b">Fahrenheit</span><strong id="res-f">—</strong></div>
-            <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#64748b">Kelvin</span><strong id="res-k">—</strong></div>
-          </div>
-        </div>
-      </div>
+<!-- VISOR MANUALES -->
+<div id="visor-panel">
+  <div class="visor-header">
+    <div class="visor-title" id="visor-title">Manual</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <label class="visor-upload-btn" for="visor-file-input">📂 Subir PDF / HTML</label>
+      <input type="file" id="visor-file-input" accept=".pdf,.html,.htm" onchange="cargarArchivoManual(this)">
+      <button class="visor-close" onclick="cerrarVisor()">✕ Cerrar</button>
     </div>
-
-    <!-- ===== KPI ===== -->
-    <div id="v-intel" class="view">
-      <div class="page-title">Inteligencia de Planta — KPIs de Mantenimiento</div>
-      <div class="two-col">
-        <div class="card">
-          <h3>Entrada de Datos del Mes</h3>
-          <div class="field"><label>Horas operativas del mes</label><input type="number" id="h-total" value="720" oninput="calcKPI()"></div>
-          <div class="field"><label>Número de fallas</label><input type="number" id="f-total" value="4" oninput="calcKPI()"></div>
-          <div class="field"><label>Horas totales de reparación</label><input type="number" id="h-rep" value="8" oninput="calcKPI()"></div>
-          <div class="field"><label>Eficiencia de rendimiento (%)</label><input type="number" id="efic" value="92" min="0" max="100" oninput="calcKPI()"></div>
-          <div class="field"><label>Calidad de producción (%)</label><input type="number" id="cal" value="95" min="0" max="100" oninput="calcKPI()"></div>
-          <div class="kpi-box" id="res-mtbf">MTBF: — hrs</div>
-        </div>
-        <div class="card">
-          <h3>Indicadores Calculados</h3>
-          <div style="font-size:0.82rem;color:#334155">
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:8px 0"><span style="color:#64748b">MTTR — Tiempo medio de reparación</span><strong id="res-mttr">—</strong></div>
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:8px 0"><span style="color:#64748b">Disponibilidad del equipo</span><strong id="res-disp">—</strong></div>
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:8px 0"><span style="color:#64748b">Rendimiento</span><strong id="res-rend">—</strong></div>
-            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:8px 0"><span style="color:#64748b">Calidad</span><strong id="res-cal">—</strong></div>
-            <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="color:#64748b;font-weight:800">OEE Total</span><strong id="res-oee" style="font-size:1.1rem;color:#0f766e">—</strong></div>
-          </div>
-          <div style="margin-top:14px">
-            <div style="font-size:0.62rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Disponibilidad</div>
-            <div class="oee-bar-wrap"><div class="oee-bar" id="bar-disp" style="width:0%;background:#2dd4bf"></div></div>
-            <div style="font-size:0.62rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 3px">OEE</div>
-            <div class="oee-bar-wrap"><div class="oee-bar" id="bar-oee" style="width:0%;background:#8b5cf6"></div></div>
-          </div>
-          <div class="chart-wrap" style="height:140px;margin-top:16px"><canvas id="chart-kpi"></canvas></div>
-        </div>
-      </div>
+  </div>
+  <div class="visor-body" id="visor-body">
+    <div class="visor-placeholder">
+      <p style="color:#94a3b8;font-size:1rem">📂 Seleccione un archivo</p>
+      <small style="color:#475569;display:block;margin:8px 0">Haga clic en "Subir PDF / HTML" para cargar el manual desde su computadora</small>
+      <label class="visor-upload-btn" for="visor-file-input">📂 Seleccionar archivo...</label>
     </div>
-
-  </main>
+  </div>
 </div>
 
-<!-- ===== MODAL FALLA ===== -->
-<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+<!-- MODAL ENTRADA (SCANNER) -->
+<div class="modal-overlay" id="modal-entrada">
   <div class="modal-box">
-    <div style="font-size:34px;margin-bottom:10px">🔧</div>
-    <h3 id="modal-title">PMB-1</h3>
-    <p>Ingrese ID del técnico para registrar la falla y enviar a taller</p>
-    <input type="text" id="tech-id" placeholder="ID TÉCNICO" onkeydown="if(event.key==='Enter')confirmOTModal()">
-    <button class="btn-confirm" onclick="confirmOTModal()">CONFIRMAR — ENVIAR A TALLER</button>
-    <button class="btn-cancel-m" onclick="closeModal()">Cancelar</button>
+    <div style="font-size:40px;margin-bottom:8px">🔴</div>
+    <h3 id="entrada-titulo">PMB-1 — Registrar Falla</h3>
+    <p>Escanee el código de barras de su carnet<br>para quedar asignado como técnico responsable</p>
+    <div class="scanner-hint"><div class="scanner-pulse"></div><span>Escáner activo — apunte al código de barras</span></div>
+    <div class="modal-info-box" id="entrada-info"></div>
+    <input type="text" class="modal-input" id="entrada-id" placeholder="▐ ESCANEAR / INGRESAR ID"
+      onkeydown="if(event.key==='Enter')confirmarEntrada()" autocomplete="off">
+    <button class="btn-confirm-red" onclick="confirmarEntrada()">🔧 CONFIRMAR — ENVIAR A TALLER</button>
+    <button class="btn-cancel-m" onclick="cerrarModales()">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL SALIDA (SCANNER) -->
+<div class="modal-overlay" id="modal-salida">
+  <div class="modal-box">
+    <div style="font-size:40px;margin-bottom:8px">✅</div>
+    <h3 id="salida-titulo">Liberar a Producción</h3>
+    <p>Escanee su carnet para confirmar<br>que el mantenimiento fue completado exitosamente</p>
+    <div class="scanner-hint"><div class="scanner-pulse"></div><span>Escáner activo — apunte al código de barras</span></div>
+    <div class="modal-info-box" id="salida-info"></div>
+    <input type="text" class="modal-input" id="salida-id" placeholder="▐ ESCANEAR / INGRESAR ID"
+      onkeydown="if(event.key==='Enter')confirmarSalida()" autocomplete="off">
+    <button class="btn-confirm-green" onclick="confirmarSalida()">✅ LIBERAR A PRODUCCIÓN</button>
+    <button class="btn-cancel-m" onclick="cerrarModales()">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL EMAIL -->
+<div class="modal-overlay" id="modal-email">
+  <div class="modal-box" style="width:420px">
+    <div style="font-size:34px;margin-bottom:8px">📧</div>
+    <h3>Notificación Outlook</h3>
+    <p>Correo listo para enviar al supervisor de producción</p>
+    <div class="email-preview">
+      <div class="email-lbl">Para:</div><div class="email-val" id="email-para">—</div>
+      <div class="email-lbl">Asunto:</div><div class="email-val" id="email-asunto">—</div>
+      <div class="email-lbl">Mensaje:</div><div class="email-body" id="email-cuerpo">—</div>
+    </div>
+    <button class="btn-confirm-green" onclick="enviarEmail()">📤 Abrir Outlook y Enviar</button>
+    <button class="btn-cancel-m" onclick="cerrarModales()">Omitir notificación</button>
+  </div>
+</div>
+
+<!-- MODAL CERRAR OT -->
+<div class="modal-overlay" id="modal-cierre">
+  <div class="modal-box" style="width:400px">
+    <div style="font-size:36px;margin-bottom:8px">📋</div>
+    <h3 id="cierre-titulo">Cerrar Orden de Trabajo</h3>
+    <p>Complete la información del trabajo realizado para cerrar la OT</p>
+    <div class="modal-info-box" id="cierre-info"></div>
+    <div style="text-align:left;margin-bottom:10px">
+      <label style="font-size:0.62rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Trabajo Realizado *</label>
+      <textarea id="cierre-trabajo" placeholder="Describa las acciones tomadas, repuestos usados, ajustes realizados..." style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:7px;font-size:0.84rem;outline:none;min-height:80px;resize:vertical;font-family:inherit;transition:.2s"></textarea>
+    </div>
+    <div style="text-align:left;margin-bottom:14px">
+      <label style="font-size:0.62rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Horas Trabajadas</label>
+      <input type="number" id="cierre-hrs" placeholder="Ej: 2.5" min="0" step="0.5" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:7px;font-size:0.9rem;outline:none;transition:.2s">
+    </div>
+    <button class="btn-confirm-green" onclick="confirmarCierreOT()">✅ CONFIRMAR CIERRE DE OT</button>
+    <button class="btn-cancel-m" onclick="cerrarModales()">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL ADMIN — ACCESO A TÉCNICOS -->
+<div class="modal-overlay" id="modal-admin">
+  <div class="modal-box">
+    <div style="font-size:40px;margin-bottom:8px">🔒</div>
+    <h3>Acceso Restringido</h3>
+    <p>El módulo de Técnicos requiere autorización de administrador.<br>Ingrese la contraseña de administrador para continuar.</p>
+    <input type="password" class="modal-input" id="admin-pass" placeholder="CONTRASEÑA ADMIN"
+      onkeydown="if(event.key==='Enter')verificarAdmin()" autocomplete="off">
+    <button class="btn-confirm-red" onclick="verificarAdmin()" style="background:#0f172a">🔓 VERIFICAR Y ACCEDER</button>
+    <button class="btn-cancel-m" onclick="cerrarModales()">Cancelar</button>
+    <div style="margin-top:10px;font-size:0.65rem;color:#94a3b8">Clave por defecto: AURORA2026</div>
   </div>
 </div>
 
 <div class="notification" id="notif"></div>
 
-<!-- ===== JAVASCRIPT ===== -->
 <script>
-  /* ---- DATOS GLOBALES ---- */
-  var machines = [];
-  var OTs = [];
-  var preventivos = [];
-  var repuestosTemp = [];
-  var currentMachine = null;
-  var estadoFiltro = 'Todas';
-  var otCounter = 1000;
-  var chartFallas = null, chartOts = null, chartKpi = null;
+/* ========== PLANTAS & GRUPOS ========== */
+function rng(a,b){var r=[];for(var i=a;i<=b;i++)r.push(i);return r;}
 
-  /* ---- LOGIN / LOGOUT ---- */
-  function login() {
-    if (document.getElementById('pass').value === '21705') {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'flex';
-      initAll();
-    } else {
-      var inp = document.getElementById('pass');
-      inp.style.borderColor = '#ef4444';
-      setTimeout(function () { inp.style.borderColor = '#e2e8f0'; }, 900);
-    }
+var PLANTAS={
+  ARENA:{
+    label:'ARENA',color:'#2dd4bf',icon:'🏭',
+    grupos:[
+      {nombre:'PMB',prefix:'PMB',ids:rng(1,48).concat(rng(67,75))},
+      {nombre:'Maker',prefix:'MAKER',ids:[2,3,4,5,6,7,8,10,12]},
+      {nombre:'Combiner',prefix:'COMBINER',ids:[1,2]},
+      {nombre:'Crusher',prefix:'CRUSHER',ids:[1,2]},
+      {nombre:'WTE Etcher',prefix:'WTE ETCHER',ids:[1,2,3,4,5]},
+      {nombre:'Scandia',prefix:'SCANDIA',ids:['1','2','3','4','5','6','7','8','9','A','B','C','D','F','K']}
+    ]
+  },
+  PHOENIX:{
+    label:'PHOENIX',color:'#f59e0b',icon:'🔥',
+    grupos:[
+      {nombre:'PMB',prefix:'PMB',ids:rng(49,66)},
+      {nombre:'Maker',prefix:'MAKER',ids:[1,9,11,13,14,]},
+      {nombre:'Combiner',prefix:'COMBINER',ids:[3]},
+      {nombre:'Crusher',prefix:'CRUSHER',ids:[4]},
+      {nombre:'Scandia',prefix:'SCANDIA',ids:['H','G','E','I','J','L']}
+    ]
   }
+};
 
-  function logout() {
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('pass').value = '';
-  }
+/* ========== DATOS GLOBALES ========== */
+var machines={};       // key = machineId
+var tecnicos=[];       // [{id,nombre,cargo,turno}]
+var OTs=[];
+var preventivos=[];
+var repuestosTemp=[];
+var currentMachine=null;
+var estadoFiltro='Todas';
+var otCounter=1000;
+var turnoActual='T1';
+var emailData=null;
+var chartFallas=null,chartOts=null,chartKpi=null;
+var costTimer=null;
 
-  /* ---- INICIALIZACIÓN ---- */
-  function initAll() {
-    initMachines();
-    initEquipoSelects();
-    setToday();
-    calcKPI();
-    initCharts();
-    renderOTs();
-    renderPreventivo();
-  }
-
-  function initMachines() {
-    if (machines.length > 0) return;
-    for (var i = 1; i <= 48; i++) {
-      var hrs = Math.floor(Math.random() * 4200);
-      machines.push({
-        id: 'PMB-' + i,
-        hrs: hrs,
-        maxHrs: 5000,
-        status: i === 4 ? 'MTTO' : (i === 7 || i === 15 ? 'PREV' : 'OK')
+/* ========== PERSISTENCIA localStorage ========== */
+var STORAGE_KEY='aurora_cmms_v78';
+function guardarEstado(){
+  try{
+    var estado={
+      OTs:OTs,
+      tecnicos:tecnicos,
+      preventivos:preventivos,
+      otCounter:otCounter,
+      machinesState:{}
+    };
+    // Solo guardar el estado dinámico de máquinas (status, tecnico, hrs, mttoStart)
+    Object.keys(machines).forEach(function(mid){
+      var m=machines[mid];
+      estado.machinesState[mid]={status:m.status,tecnicoNombre:m.tecnicoNombre,tecnicoId:m.tecnicoId,fechaEntrada:m.fechaEntrada,mttoStart:m.mttoStart,hrs:m.hrs};
+    });
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(estado));
+  }catch(e){console.warn('No se pudo guardar estado:',e);}
+}
+function cargarEstado(){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    var estado=JSON.parse(raw);
+    if(estado.OTs)OTs=estado.OTs;
+    if(estado.tecnicos&&estado.tecnicos.length>0)tecnicos=estado.tecnicos;
+    if(estado.preventivos)preventivos=estado.preventivos;
+    if(estado.otCounter)otCounter=estado.otCounter;
+    if(estado.machinesState){
+      Object.keys(estado.machinesState).forEach(function(mid){
+        if(machines[mid]){
+          var s=estado.machinesState[mid];
+          machines[mid].status=s.status||'OK';
+          machines[mid].tecnicoNombre=s.tecnicoNombre||'';
+          machines[mid].tecnicoId=s.tecnicoId||'';
+          machines[mid].fechaEntrada=s.fechaEntrada||'';
+          machines[mid].mttoStart=s.mttoStart||0;
+          machines[mid].hrs=s.hrs||machines[mid].hrs;
+        }
       });
     }
-    renderMachines();
+    return true;
+  }catch(e){console.warn('No se pudo cargar estado:',e);return false;}
+}
+
+/* ========== LOGIN ========== */
+var ADMIN_PIN='21705';
+var ADMIN_PASS='AURORA2026';
+var usuarioActual=null;
+
+function poblarLoginSelect(){
+  // Ya no hay dropdown — función vacía por compatibilidad
+}
+
+function login(){
+  var raw=document.getElementById('pass').value.trim();
+
+  if(!raw){loginError();return;}
+
+  // Admin por PIN maestro
+  if(raw===ADMIN_PIN){
+    usuarioActual={id:'ADMIN',nombre:'Administrador',cargo:'Supervisor CMMS',turno:'—'};
+    abrirSistema();return;
   }
 
-  function initEquipoSelects() {
-    var opts = '';
-    for (var i = 1; i <= 48; i++) opts += '<option>PMB-' + i + '</option>';
-    ['ot-equipo', 'prev-equipo'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.innerHTML = opts;
+  // Buscar en técnicos registrados (ID de carnet)
+  var tec=tecnicos.find(function(t){return t.id.toUpperCase()===raw.toUpperCase();});
+  if(tec){usuarioActual=tec;abrirSistema();return;}
+
+  // También buscar por nombre parcial no — solo por ID exacto por seguridad
+  loginError();
+}
+
+function loginError(){
+  var inp=document.getElementById('pass');
+  inp.style.borderColor='rgba(239,68,68,0.8)';
+  inp.value='';
+  notifLogin('❌ Acceso denegado — ID no registrado');
+  setTimeout(function(){inp.style.borderColor='rgba(255,255,255,0.15)';},1500);
+}
+
+function notifLogin(msg){
+  var el=document.querySelector('.login-hint');
+  if(el){el.textContent=msg;el.style.color='#fca5a5';}
+  setTimeout(function(){if(el){el.textContent='Ingrese su ID de carnet o PIN autorizado';el.style.color='';}},2500);
+}
+
+function abrirSistema(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('sb-nombre').textContent=usuarioActual.nombre.toUpperCase();
+  document.getElementById('sb-cargo').textContent=usuarioActual.cargo;
+  initAll();
+}
+
+function logout(){
+  usuarioActual=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('pass').value='';
+  if(costTimer)clearInterval(costTimer);
+}
+
+/* ========== TURNO AUTOMÁTICO UTC-4 (República Dominicana) ========== */
+function getHoraUTC4(){
+  // UTC-4 = restar 4 horas al UTC
+  var ahora=new Date();
+  var utc=ahora.getTime()+ahora.getTimezoneOffset()*60000;
+  var rd=new Date(utc+(-4*3600000));
+  return rd.getHours();
+}
+function getTurnoAuto(){
+  var h=getHoraUTC4();
+  if(h>=6&&h<14)return'T1';
+  if(h>=14&&h<22)return'T2';
+  return'T3';
+}
+function getTurnoLabel(t){
+  if(t==='T1')return'T1 — 6:00 AM a 3:00 PM';
+  if(t==='T2')return'T2 — 3:00 PM a 11:00 PM';
+  return'T3 — 11:00 PM a 6:00 AM';
+}
+function aplicarTurno(t){
+  turnoActual=t;
+  ['T1','T2','T3'].forEach(function(x){
+    document.getElementById('btn-'+x.toLowerCase()).classList.toggle('active',x===t);
+  });
+  document.getElementById('turno-label').textContent='AUTO (UTC-4) — '+t;
+  var el=document.getElementById('ot-turno');
+  if(el)el.value=getTurnoLabel(t);
+}
+// NO hay setTurnoManual — el turno es solo automático
+// Verificar cambio de turno cada 60 segundos
+setInterval(function(){
+  var t=getTurnoAuto();
+  if(t!==turnoActual)aplicarTurno(t);
+},60000);
+
+/* ========== INIT ========== */
+function initAll(){
+  initTecnicos();    // carga defaults si no hay nada
+  initMachines();    // construye estructura base
+  cargarEstado();    // sobreescribe con datos guardados
+  renderTecnicos();
+  syncTecnicoSelects();
+  aplicarTurno(getTurnoAuto());
+  setToday();
+  calcKPI();
+  initCharts();
+  renderOTs();
+  renderPreventivo();
+  renderPlantaUI('ARENA');
+  renderPlantaUI('PHOENIX');
+  actualizarCostos();
+  costTimer=setInterval(function(){actualizarCostos();guardarEstado();},30000);
+}
+
+function initTecnicos(){
+  if(tecnicos.length>0)return;
+  tecnicos=[
+    {id:'T001',nombre:'H. Guerrero',cargo:'Técnico Senior',turno:'T1 — 6:00 AM a 3:00 PM'},
+    {id:'T002',nombre:'R. Martínez',cargo:'Técnico Eléctrico',turno:'T2 — 3:00 PM a 11:00 PM'},
+    {id:'T003',nombre:'J. Pérez',cargo:'Técnico Mecánico',turno:'T1 — 6:00 AM a 3:00 PM'},
+    {id:'T004',nombre:'L. Santos',cargo:'Técnico PLC / Automatización',turno:'T3 — 11:00 PM a 6:00 AM'}
+  ];
+  renderTecnicos();
+  syncTecnicoSelects();
+}
+
+// Llamar poblarLoginSelect al cargar la página
+window.addEventListener('load',function(){poblarLoginSelect();});
+
+function initMachines(){
+  if(Object.keys(machines).length>0)return;
+  Object.keys(PLANTAS).forEach(function(planta){
+    PLANTAS[planta].grupos.forEach(function(g){
+      g.ids.forEach(function(id){
+        var mid=g.prefix+'-'+id;
+        if(!machines[mid]){
+          machines[mid]={
+            id:mid,planta:planta,grupo:g.nombre,
+            hrs:Math.floor(Math.random()*4000),maxHrs:5000,
+            status:'OK',tecnicoNombre:'',tecnicoId:'',
+            fechaEntrada:'',mttoStart:0
+          };
+        }
+      });
     });
-  }
-
-  function setToday() {
-    var today = new Date().toISOString().split('T')[0];
-    var hora = new Date().toTimeString().slice(0, 5);
-    var fd = document.getElementById('ot-fecha');
-    var fh = document.getElementById('ot-hora');
-    var fp = document.getElementById('prev-fecha');
-    if (fd) fd.value = today;
-    if (fh) fh.value = hora;
-    if (fp) fp.value = today;
-    nextOTNum();
-  }
-
-  function nextOTNum() {
-    otCounter++;
-    var el = document.getElementById('ot-num');
-    if (el) el.value = 'OT-' + otCounter;
-  }
-
-  /* ---- NAVEGACIÓN ---- */
-  function nav(view, el) {
-    document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
-    document.querySelectorAll('.nav-item').forEach(function (i) { i.classList.remove('active'); });
-    document.getElementById('v-' + view).classList.add('active');
-    el.classList.add('active');
-    if (view === 'historial') renderOTs();
-    if (view === 'nueva-ot') renderOTsRecientes();
-    if (view === 'preventivo') renderPreventivo();
-  }
-
-  function setTurn(el) {
-    document.querySelectorAll('.sb-turn button').forEach(function (b) { b.classList.remove('active-turn'); });
-    el.classList.add('active-turn');
-  }
-
-  /* ---- MÁQUINAS ---- */
-  function renderMachines() {
-    var grid = document.getElementById('machine-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    var ot = 0, prev = 0;
-    machines.forEach(function (m) {
-      if (m.status === 'MTTO') ot++;
-      if (m.status === 'PREV') prev++;
-      var c = document.createElement('div');
-      c.className = 'pmb-card ' + (m.status === 'MTTO' ? 'mtto' : m.status === 'PREV' ? 'prev-due' : '');
-      var pct = Math.round((m.hrs / m.maxHrs) * 100);
-      c.innerHTML =
-        '<div class="pmb-head"></div>' +
-        '<div class="pmb-body"><h4>' + m.id + '</h4><span>' + m.hrs + ' hrs</span></div>' +
-        '<div class="pmb-footer"><span>' + pct + '%</span><span>' + m.maxHrs + 'h</span></div>';
-      (function (machine) { c.onclick = function () { openModal(machine); }; })(m);
-      grid.appendChild(c);
-    });
-    document.getElementById('cnt-ot').textContent = ot;
-    document.getElementById('cnt-ok').textContent = 48 - ot - prev;
-    document.getElementById('cnt-prev').textContent = prev;
-    var disp = Math.round(((48 - ot) / 48) * 100);
-    document.getElementById('cnt-disp').textContent = disp + '%';
-  }
-
-  /* ---- MODAL FALLA ---- */
-  function openModal(m) {
-    if (m.status === 'MTTO') {
-      if (confirm('¿Liberar ' + m.id + ' a producción?\nConfirme que la reparación fue validada.')) {
-        m.status = 'OK';
-        renderMachines();
-        notif('✓ ' + m.id + ' liberado a producción');
-      }
-    } else {
-      currentMachine = m;
-      document.getElementById('modal-title').textContent = m.id;
-      document.getElementById('tech-id').value = '';
-      document.getElementById('modal').style.display = 'flex';
-      setTimeout(function () { document.getElementById('tech-id').focus(); }, 80);
+  });
+  // Demo: poner algunas en taller
+  var demo=['PMB-4','MAKER-3','SCANDIA-A','PMB-55','SCANDIA-H'];
+  demo.forEach(function(id){
+    if(machines[id]){
+      machines[id].status='MTTO';
+      machines[id].tecnicoNombre='R. Martínez';
+      machines[id].tecnicoId='T002';
+      machines[id].fechaEntrada=new Date().toLocaleTimeString('es-DO');
+      machines[id].mttoStart=Date.now()-(Math.random()*3*3600000);
     }
-  }
+  });
+}
 
-  function confirmOTModal() {
-    var id = document.getElementById('tech-id').value.trim();
-    if (id.length < 2) { document.getElementById('tech-id').style.borderColor = '#ef4444'; return; }
-    currentMachine.status = 'MTTO';
-    var ot = {
-      num: 'OT-' + otCounter, fecha: new Date().toLocaleDateString('es-DO'),
-      equipo: currentMachine.id, tipo: 'Correctivo', tecnico: id,
-      desc: 'Falla reportada desde dashboard', trabajo: '', estado: 'Abierta', hrs: 0, repuestos: []
-    };
-    OTs.unshift(ot);
-    otCounter++;
-    updateOTBadge();
-    closeModal();
-    renderMachines();
-    renderOTs();
-    renderOTsRecientes();
-    notif('OT creada para ' + currentMachine.id);
-  }
-
-  function closeModal() {
-    document.getElementById('modal').style.display = 'none';
-    currentMachine = null;
-  }
-
-  /* ---- ÓRDENES DE TRABAJO ---- */
-  function guardarOT(estado) {
-    var num = document.getElementById('ot-num').value;
-    var equipo = document.getElementById('ot-equipo').value;
-    var tipo = document.getElementById('ot-tipo').value;
-    var tecnico = document.getElementById('ot-tecnico').value;
-    var desc = document.getElementById('ot-desc').value.trim();
-    var trabajo = document.getElementById('ot-trabajo').value.trim();
-    var tiempo = document.getElementById('ot-tiempo').value;
-    var fecha = document.getElementById('ot-fecha').value;
-    if (!desc) { alert('Ingrese la descripción de la falla'); return; }
-    OTs.unshift({ num: num, fecha: fecha, equipo: equipo, tipo: tipo, tecnico: tecnico, desc: desc, trabajo: trabajo, estado: estado, hrs: parseFloat(tiempo) || 0, repuestos: repuestosTemp.slice() });
-    var m = machines.find(function (x) { return x.id === equipo; });
-    if (m) m.status = (estado === 'Completada') ? 'OK' : 'MTTO';
-    renderMachines();
-    renderOTs();
-    renderOTsRecientes();
-    updateOTBadge();
-    repuestosTemp = [];
-    document.getElementById('rep-list').innerHTML = '';
-    document.getElementById('ot-desc').value = '';
-    document.getElementById('ot-trabajo').value = '';
-    nextOTNum();
-    notif('OT ' + num + ' guardada — ' + estado);
-  }
-
-  function renderOTs() {
-    var tbody = document.getElementById('ot-tbody');
-    if (!tbody) return;
-    var empty = document.getElementById('ot-empty');
-    var busq = (document.getElementById('ot-search') || {}).value || '';
-    var data = OTs.filter(function (o) {
-      var matchEstado = estadoFiltro === 'Todas' || o.estado === estadoFiltro;
-      var matchBusq = !busq || (o.num + o.equipo + o.tecnico + o.desc).toLowerCase().includes(busq.toLowerCase());
-      return matchEstado && matchBusq;
-    });
-    if (data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-    tbody.innerHTML = data.map(function (o) {
-      var cls = o.estado === 'Abierta' ? 'badge-open' : o.estado === 'En Progreso' ? 'badge-prog' : o.estado === 'Completada' ? 'badge-done' : 'badge-cancel';
-      return '<tr>' +
-        '<td style="font-weight:700;color:#0f172a">' + o.num + '</td>' +
-        '<td>' + o.fecha + '</td>' +
-        '<td style="font-weight:700">' + o.equipo + '</td>' +
-        '<td>' + o.tipo + '</td>' +
-        '<td>' + o.tecnico + '</td>' +
-        '<td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + o.desc + '</td>' +
-        '<td><span class="badge ' + cls + '">' + o.estado + '</span></td>' +
-        '<td>' + o.hrs + 'h</td>' +
-        '</tr>';
-    }).join('');
-  }
-
-  function renderOTsRecientes() {
-    var el = document.getElementById('ots-recientes');
-    if (!el) return;
-    var abiertas = OTs.filter(function (o) { return o.estado === 'Abierta' || o.estado === 'En Progreso'; }).slice(0, 5);
-    if (abiertas.length === 0) { el.innerHTML = '<p style="color:#94a3b8">No hay OTs abiertas.</p>'; return; }
-    el.innerHTML = abiertas.map(function (o) {
-      var cls = o.estado === 'Abierta' ? 'badge-open' : 'badge-prog';
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9">' +
-        '<span style="font-weight:700;color:#1e293b">' + o.num + '</span>' +
-        '<span>' + o.equipo + '</span>' +
-        '<span class="badge ' + cls + '">' + o.estado + '</span></div>';
-    }).join('');
-  }
-
-  function filtrarOTs(v) { renderOTs(); }
-
-  function filtrarEstado(e, el) {
-    estadoFiltro = e;
-    document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
-    el.classList.add('active');
-    renderOTs();
-  }
-
-  function updateOTBadge() {
-    var n = OTs.filter(function (o) { return o.estado === 'Abierta' || o.estado === 'En Progreso'; }).length;
-    document.getElementById('ot-badge').textContent = n;
-  }
-
-  function addRepuesto() {
-    var sap = document.getElementById('rep-sap').value.trim();
-    var desc = document.getElementById('rep-desc').value.trim();
-    var qty = document.getElementById('rep-qty').value;
-    if (!desc) return;
-    repuestosTemp.push({ sap: sap || '—', desc: desc, qty: qty });
-    document.getElementById('rep-list').innerHTML =
-      '<div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:6px;font-size:0.75rem">' +
-      repuestosTemp.map(function (r) { return '<div style="padding:3px 0;border-bottom:1px solid #f1f5f9">' + r.qty + 'x ' + r.desc + ' (SAP: ' + r.sap + ')</div>'; }).join('') +
+/* ========== RENDER PLANTAS ========== */
+function renderPlantaUI(planta){
+  var container=document.getElementById('plant-'+planta);
+  if(!container)return;
+  container.innerHTML='';
+  var P=PLANTAS[planta];
+  P.grupos.forEach(function(g){
+    var mList=g.ids.map(function(id){return machines[g.prefix+'-'+id];}).filter(Boolean);
+    var section=document.createElement('div');
+    section.className='m-section';
+    var ok=mList.filter(function(m){return m.status==='OK';}).length;
+    var ot=mList.filter(function(m){return m.status==='MTTO';}).length;
+    var costoG=calcCostoGrupo(mList);
+    section.innerHTML=
+      '<div class="m-section-header" onclick="toggleSection(this)">'+
+        '<div class="m-section-title">'+
+          '<span style="font-size:16px">'+(P.icon)+'</span>'+
+          '<span class="m-section-name">'+g.nombre+'</span>'+
+          '<span class="m-section-total">'+mList.length+' máq.</span>'+
+        '</div>'+
+        '<div class="m-section-stats">'+
+          '<span class="m-stat-ok">✓ '+ok+' OK</span>'+
+          (ot>0?'<span class="m-stat-ot">⚠ '+ot+' TALLER</span>':'')+
+          (costoG>0?'<span class="m-stat-cost">$'+costoG.toFixed(0)+'</span>':'')+
+        '</div>'+
+        '<span class="m-section-arrow">▼</span>'+
+      '</div>'+
+      '<div class="m-section-body">'+
+        '<div class="machine-grid'+(mList.length>20?' small':'')+'">'+
+          mList.map(buildCardHTML).join('')+
+        '</div>'+
       '</div>';
-    document.getElementById('rep-sap').value = '';
-    document.getElementById('rep-desc').value = '';
-    document.getElementById('rep-qty').value = '1';
-  }
-
-  function exportarOTs() {
-    if (OTs.length === 0) { alert('No hay OTs para exportar'); return; }
-    var csv = 'OT,Fecha,Equipo,Tipo,Técnico,Descripción,Estado,Horas\n';
-    OTs.forEach(function (o) {
-      csv += '"' + o.num + '","' + o.fecha + '","' + o.equipo + '","' + o.tipo + '","' + o.tecnico + '","' + o.desc + '","' + o.estado + '","' + o.hrs + '"\n';
+    container.appendChild(section);
+    // attach click events
+    section.querySelectorAll('.pmb-card').forEach(function(card){
+      var mid=card.getAttribute('data-mid');
+      card.onclick=function(){clickMaquina(machines[mid]);};
     });
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'OTs_Aurora_' + new Date().toISOString().split('T')[0] + '.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  });
+}
 
-  /* ---- PLAN PREVENTIVO ---- */
-  function agregarPreventivo() {
-    var equipo = document.getElementById('prev-equipo').value;
-    var freq = document.getElementById('prev-freq').value;
-    var fecha = document.getElementById('prev-fecha').value;
-    var tarea = document.getElementById('prev-tarea').value.trim();
-    var tecnico = document.getElementById('prev-tecnico').value;
-    if (!tarea) { alert('Ingrese la tarea a realizar'); return; }
-    preventivos.push({ equipo: equipo, freq: freq, fecha: fecha, tarea: tarea, tecnico: tecnico, completado: false });
-    document.getElementById('prev-tarea').value = '';
-    renderPreventivo();
-    notif('Tarea preventiva agregada para ' + equipo);
+function buildCardHTML(m){
+  var pct=Math.round((m.hrs/m.maxHrs)*100);
+  var cls='pmb-card'+(m.status==='MTTO'?' mtto':m.status==='PREV'?' prev-due':'');
+  var techRow='';
+  if(m.status==='MTTO'&&m.tecnicoNombre){
+    var ini=m.tecnicoNombre.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    var hrsStr=m.mttoStart?((Date.now()-m.mttoStart)/3600000).toFixed(1)+'h':'';
+    var costo=m.mttoStart?((Date.now()-m.mttoStart)/3600000)*(parseFloat(document.getElementById('cfg-costo').value)||500):0;
+    techRow='<div class="pmb-tech-row">'+
+      '<div class="pmb-tech-av">'+ini+'</div>'+
+      '<div class="pmb-tech-name">'+m.tecnicoNombre+'</div>'+
+      (hrsStr?'<div class="pmb-cost-tag">$'+costo.toFixed(0)+'</div>':'')+
+    '</div>';
   }
+  return '<div class="'+cls+'" data-mid="'+m.id+'">'+
+    '<div class="pmb-head"></div>'+
+    '<div class="pmb-body"><h4>'+m.id+'</h4><div class="pmb-hrs">'+m.hrs+' hrs</div></div>'+
+    '<div class="pmb-footer"><span>'+pct+'%</span><span>'+m.maxHrs+'h</span></div>'+
+    techRow+'</div>';
+}
 
-  function renderPreventivo() {
-    var el = document.getElementById('prev-list');
-    var empty = document.getElementById('prev-empty');
-    if (!el) return;
-    if (preventivos.length === 0) { el.innerHTML = ''; empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-    var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-    var ok = 0, due = 0, venc = 0;
-    el.innerHTML = preventivos.map(function (p, i) {
-      var fecha = new Date(p.fecha + 'T00:00:00');
-      var diff = Math.round((fecha - hoy) / (1000 * 60 * 60 * 24));
-      var badge, color;
-      if (p.completado) { badge = 'Completado'; color = 'badge-done'; ok++; }
-      else if (diff < 0) { badge = 'Vencido'; color = 'badge-open'; venc++; }
-      else if (diff <= 7) { badge = 'En ' + diff + 'd'; color = 'badge-prog'; due++; }
-      else { badge = 'Programado'; color = 'badge-cancel'; ok++; }
-      return '<div class="prev-table-row">' +
-        '<span style="font-weight:700;color:#1e293b">' + p.equipo + '</span>' +
-        '<span style="font-size:0.75rem;color:#334155">' + p.tarea + '</span>' +
-        '<span style="font-size:0.72rem;color:#64748b">' + p.freq + '</span>' +
-        '<span style="font-size:0.72rem">' + p.fecha + '</span>' +
-        '<span><span class="badge ' + color + '">' + badge + '</span></span>' +
-        '</div>';
-    }).join('');
-    document.getElementById('prev-cnt-ok').textContent = ok;
-    document.getElementById('prev-cnt-due').textContent = due;
-    document.getElementById('prev-cnt-venc').textContent = venc;
-    document.getElementById('prev-total').textContent = preventivos.length;
-    var pct = preventivos.length > 0 ? Math.round((ok / preventivos.length) * 100) + '%' : '—';
-    document.getElementById('prev-cumplimiento').textContent = pct;
-  }
+function toggleSection(header){
+  var body=header.parentElement.querySelector('.m-section-body');
+  var arrow=header.querySelector('.m-section-arrow');
+  body.classList.toggle('collapsed');
+  arrow.textContent=body.classList.contains('collapsed')?'▶':'▼';
+}
 
-  /* ---- SAP ---- */
-  function fSAP(v) {
-    document.querySelectorAll('#sap-tbody tr').forEach(function (r) {
-      r.style.display = r.textContent.toLowerCase().includes(v.toLowerCase()) ? '' : 'none';
-    });
-  }
+function setPlanta(planta,el){
+  document.querySelectorAll('.plant-container').forEach(function(c){c.classList.remove('active')});
+  document.querySelectorAll('.plant-tab').forEach(function(t){t.className='plant-tab'});
+  document.getElementById('plant-'+planta).classList.add('active');
+  el.className='plant-tab active-'+planta.toLowerCase();
+}
 
-  /* ---- CALCULADORAS ---- */
-  function calcMotor() {
-    var v = parseFloat(document.getElementById('m-v').value);
-    var a = parseFloat(document.getElementById('m-a').value);
-    var hp = parseFloat(document.getElementById('m-hp').value);
-    var p = parseInt(document.getElementById('m-p').value);
-    if (isNaN(v) || isNaN(a) || isNaN(hp)) { alert('Complete todos los campos'); return; }
-    var rpm = (120 * 60) / p;
-    var kw = (hp * 0.746).toFixed(2);
-    var kva = ((v * a * 1.732) / 1000).toFixed(2);
-    var fp = (hp * 746 / (v * a * 1.732)).toFixed(3);
-    var torque = ((hp * 5252) / rpm).toFixed(2);
-    showMotorResult([
-      ['Velocidad de sincronismo', rpm + ' RPM'],
-      ['Potencia eléctrica', kw + ' kW'],
-      ['Consumo aparente', kva + ' kVA'],
-      ['Factor de potencia estimado', fp],
-      ['Torque', torque + ' lb·ft']
-    ]);
-  }
-
-  function calcOhm() {
-    var v = parseFloat(document.getElementById('m-v').value);
-    var a = parseFloat(document.getElementById('m-a').value);
-    if (isNaN(v) || isNaN(a) || a === 0) { alert('Faltan Voltaje o Amperaje'); return; }
-    showMotorResult([
-      ['Resistencia (R = V/I)', (v / a).toFixed(2) + ' Ω'],
-      ['Potencia real (P = V×I)', (v * a).toFixed(2) + ' W'],
-      ['Potencia en kW', (v * a / 1000).toFixed(3) + ' kW']
-    ]);
-  }
-
-  function showMotorResult(rows) {
-    document.getElementById('motor-data').innerHTML = rows.map(function (r) {
-      return '<div class="res-row"><span>' + r[0] + '</span><span class="res-val">' + r[1] + '</span></div>';
-    }).join('');
-    document.getElementById('res-motor').style.display = 'block';
-  }
-
-  function clearMotor() {
-    document.getElementById('res-motor').style.display = 'none';
-    ['m-v', 'm-a', 'm-hp'].forEach(function (id) { document.getElementById(id).value = ''; });
-  }
-
-  function convertMM() {
-    var mm = parseFloat(document.getElementById('val-mm').value);
-    if (isNaN(mm)) {
-      ['res-in', 'res-cm', 'res-m', 'res-ft'].forEach(function (id) { document.getElementById(id).textContent = '—'; });
-      return;
+/* ========== COSTOS ========== */
+function calcCostoGrupo(mList){
+  var rate=parseFloat(document.getElementById('cfg-costo').value)||500;
+  return mList.reduce(function(sum,m){
+    if(m.status==='MTTO'&&m.mttoStart){
+      sum+=(Date.now()-m.mttoStart)/3600000*rate;
     }
-    document.getElementById('res-in').textContent = (mm / 25.4).toFixed(4) + ' "';
-    document.getElementById('res-cm').textContent = (mm / 10).toFixed(3) + ' cm';
-    document.getElementById('res-m').textContent = (mm / 1000).toFixed(4) + ' m';
-    document.getElementById('res-ft').textContent = (mm / 304.8).toFixed(4) + ' ft';
+    return sum;
+  },0);
+}
+
+function actualizarCostos(){
+  var rate=parseFloat(document.getElementById('cfg-costo').value)||500;
+  var allMachines=Object.values(machines);
+  var totalCosto=0,hrsArena=0,hrsPh=0,costoArena=0,costoPh=0;
+  var ot=0,ok=0,prev=0;
+  allMachines.forEach(function(m){
+    if(m.status==='MTTO'){ot++;}
+    else if(m.status==='PREV'){prev++;}
+    else{ok++;}
+    if(m.status==='MTTO'&&m.mttoStart){
+      var hrs=(Date.now()-m.mttoStart)/3600000;
+      var costo=hrs*rate;
+      totalCosto+=costo;
+      if(m.planta==='ARENA'){hrsArena+=hrs;costoArena+=costo;}
+      else{hrsPh+=hrs;costoPh+=costo;}
+    }
+  });
+  document.getElementById('cost-total').textContent='$'+totalCosto.toFixed(2);
+  document.getElementById('cost-arena').textContent='$'+costoArena.toFixed(2);
+  document.getElementById('hrs-arena').textContent=hrsArena.toFixed(1)+' hrs paradas';
+  document.getElementById('cost-phoenix').textContent='$'+costoPh.toFixed(2);
+  document.getElementById('hrs-phoenix').textContent=hrsPh.toFixed(1)+' hrs paradas';
+  document.getElementById('cnt-ot').textContent=ot;
+  document.getElementById('cnt-ok').textContent=ok;
+  document.getElementById('cnt-prev').textContent=prev;
+  document.getElementById('cnt-maquinas').textContent=allMachines.length;
+  var disp=Math.round((ok/Math.max(allMachines.length,1))*100);
+  document.getElementById('cnt-disp').textContent=disp+'%';
+  // Refresh plant sections
+  renderPlantaUI('ARENA');
+  renderPlantaUI('PHOENIX');
+}
+
+/* ========== CLICK MÁQUINA ========== */
+function clickMaquina(m){
+  currentMachine=m;
+  if(m.status==='MTTO'){
+    document.getElementById('salida-titulo').textContent=m.id+' — Liberar a Producción';
+    var hrsStr=m.mttoStart?((Date.now()-m.mttoStart)/3600000).toFixed(2)+' hrs':'—';
+    var rate=parseFloat(document.getElementById('cfg-costo').value)||500;
+    var costoStr=m.mttoStart?'$'+((Date.now()-m.mttoStart)/3600000*rate).toFixed(2):'$0';
+    document.getElementById('salida-info').innerHTML=
+      '<div class="modal-info-row"><span class="modal-info-lbl">Técnico resp.</span><span class="modal-info-val">'+m.tecnicoNombre+'</span></div>'+
+      '<div class="modal-info-row"><span class="modal-info-lbl">ID Carnet</span><span class="modal-info-val">'+m.tecnicoId+'</span></div>'+
+      '<div class="modal-info-row"><span class="modal-info-lbl">En taller desde</span><span class="modal-info-val">'+m.fechaEntrada+'</span></div>'+
+      '<div class="modal-info-row"><span class="modal-info-lbl">Horas parada</span><span class="modal-info-val">'+hrsStr+'</span></div>'+
+      '<div class="modal-info-row"><span class="modal-info-lbl">Costo estimado</span><span class="modal-info-val" style="color:#dc2626">'+costoStr+' USD</span></div>';
+    document.getElementById('salida-id').value='';
+    document.getElementById('salida-id').style.borderColor='#e2e8f0';
+    abrirModal('modal-salida','salida-id');
+  } else {
+    document.getElementById('entrada-titulo').textContent=m.id+' — Registrar Falla';
+    document.getElementById('entrada-info').innerHTML=
+      '<div class="modal-info-row"><span class="modal-info-lbl">Máquina</span><span class="modal-info-val">'+m.id+'</span></div>'+
+      '<div class="modal-info-row"><span class="modal-info-lbl">Planta</span><span class="modal-info-val">'+m.planta+'</span></div>'+
+      '<div class="modal-info-row"><span class="modal-info-lbl">Grupo</span><span class="modal-info-val">'+m.grupo+'</span></div>'+
+      '<div class="modal-info-row"><span class="modal-info-lbl">Hora registro</span><span class="modal-info-val">'+new Date().toLocaleTimeString('es-DO')+'</span></div>'+
+      '<div class="modal-info-row"><span class="modal-info-lbl">Turno activo</span><span class="modal-info-val">'+turnoActual+'</span></div>';
+    document.getElementById('entrada-id').value='';
+    document.getElementById('entrada-id').style.borderColor='#e2e8f0';
+    abrirModal('modal-entrada','entrada-id');
+  }
+}
+
+/* ========== RESOLVER TÉCNICO ========== */
+function resolverTecnico(rawId){
+  var k=rawId.trim().toUpperCase();
+  var tec=tecnicos.find(function(t){return t.id.toUpperCase()===k;});
+  return tec?tec:{id:k,nombre:rawId,cargo:'Técnico',turno:getTurnoLabel(turnoActual)};
+}
+
+/* ========== MODAL ENTRADA ========== */
+function confirmarEntrada(){
+  var raw=document.getElementById('entrada-id').value.trim();
+  if(raw.length<2){sacudir('entrada-id');return;}
+  var tec=resolverTecnico(raw);
+  var ahora=new Date().toLocaleTimeString('es-DO');
+  currentMachine.status='MTTO';
+  currentMachine.tecnicoNombre=tec.nombre;
+  currentMachine.tecnicoId=tec.id;
+  currentMachine.fechaEntrada=ahora;
+  currentMachine.mttoStart=Date.now();
+  var num='OT-'+otCounter; otCounter++;
+  OTs.unshift({num:num,fecha:new Date().toLocaleDateString('es-DO'),turno:turnoActual,
+    planta:currentMachine.planta,equipo:currentMachine.id,tipo:'Correctivo',
+    tecnico:tec.nombre+' ('+tec.id+')',desc:'Falla registrada por escáner de carnet',
+    trabajo:'',estado:'En Progreso',hrs:0,repuestos:[]});
+  updateOTBadge();
+  cerrarModales();
+  actualizarCostos();
+  guardarEstado();
+  notif('🔧 '+currentMachine.id+' → Taller | '+tec.nombre,'warn');
+}
+
+/* ========== MODAL SALIDA ========== */
+function confirmarSalida(){
+  var raw=document.getElementById('salida-id').value.trim();
+  if(raw.length<2){sacudir('salida-id');return;}
+  var tec=resolverTecnico(raw);
+  var maq=currentMachine;
+  var ahora=new Date().toLocaleString('es-DO');
+  var rate=parseFloat(document.getElementById('cfg-costo').value)||500;
+  var hrsParada=maq.mttoStart?(Date.now()-maq.mttoStart)/3600000:0;
+  var costoTotal=(hrsParada*rate).toFixed(2);
+  var otAbierta=OTs.find(function(o){return o.equipo===maq.id&&(o.estado==='En Progreso'||o.estado==='Abierta');});
+  if(otAbierta){otAbierta.estado='Completada';otAbierta.trabajo='Liberado por: '+tec.nombre+' — '+ahora;}
+  var dest=document.getElementById('cfg-email').value||'supervisor@laaurora.com';
+  var asunto='✅ MANTENIMIENTO COMPLETADO — '+maq.id+' LISTA PARA PRODUCCIÓN';
+  var cuerpo=
+    'Estimado Supervisor,\n\n'+
+    'El mantenimiento de la siguiente máquina ha sido completado exitosamente.\n\n'+
+    '══════════════════════════════════════════\n'+
+    '  PLANTA:              '+maq.planta+'\n'+
+    '  MÁQUINA:             '+maq.id+'\n'+
+    '  GRUPO:               '+maq.grupo+'\n'+
+    '  TÉCNICO RESPONSABLE: '+maq.tecnicoNombre+' ('+maq.tecnicoId+')\n'+
+    '  LIBERADO POR:        '+tec.nombre+' ('+tec.id+')\n'+
+    '  TURNO:               '+turnoActual+'\n'+
+    '  ENTRÓ A TALLER:      '+maq.fechaEntrada+'\n'+
+    '  LIBERADO A:          '+new Date().toLocaleTimeString('es-DO')+'\n'+
+    '  HORAS PARADA:        '+hrsParada.toFixed(2)+' hrs\n'+
+    '  COSTO ESTIMADO:      $'+costoTotal+' USD\n'+
+    '  OT ASOCIADA:         '+(otAbierta?otAbierta.num:'N/A')+'\n'+
+    '══════════════════════════════════════════\n\n'+
+    'La máquina está lista para reincorporarse a producción.\n\n'+
+    'Sistema AURORA CMMS PRO — La Aurora';
+  emailData={dest:dest,asunto:asunto,cuerpo:cuerpo};
+  maq.status='OK';maq.tecnicoNombre='';maq.tecnicoId='';maq.fechaEntrada='';maq.mttoStart=0;
+  updateOTBadge();cerrarModales();actualizarCostos();renderOTs();guardarEstado();
+  document.getElementById('email-para').textContent=dest;
+  document.getElementById('email-asunto').textContent=asunto;
+  document.getElementById('email-cuerpo').textContent=cuerpo;
+  abrirModal('modal-email',null);
+  notif('✅ '+maq.id+' liberada | Costo: $'+costoTotal+' USD','success');
+}
+
+/* ========== EMAIL ========== */
+function enviarEmail(){
+  if(!emailData)return;
+  window.open('mailto:'+encodeURIComponent(emailData.dest)+'?subject='+encodeURIComponent(emailData.asunto)+'&body='+encodeURIComponent(emailData.cuerpo),'_blank');
+  cerrarModales();
+  notif('📧 Outlook abierto — correo listo','success');
+}
+
+/* ========== GESTIÓN DE TÉCNICOS ========== */
+function guardarTecnico(){
+  var id=document.getElementById('tec-id').value.trim().toUpperCase();
+  var nombre=document.getElementById('tec-nombre').value.trim();
+  var cargo=document.getElementById('tec-cargo').value;
+  var turno=document.getElementById('tec-turno').value;
+  if(!id||!nombre){alert('Complete ID y Nombre');return;}
+  var idx=parseInt(document.getElementById('tec-edit-idx').value);
+  if(idx>=0){
+    tecnicos[idx]={id:id,nombre:nombre,cargo:cargo,turno:turno};
+    notif('Técnico actualizado','success');
+  } else {
+    if(tecnicos.find(function(t){return t.id===id;})){alert('Ya existe un técnico con ese ID');return;}
+    tecnicos.push({id:id,nombre:nombre,cargo:cargo,turno:turno});
+    notif('Técnico registrado: '+nombre,'success');
+  }
+  cancelarEditTecnico();
+  renderTecnicos();
+  syncTecnicoSelects();
+  guardarEstado();
+  poblarLoginSelect();
+}
+function editarTecnico(idx){
+  var t=tecnicos[idx];
+  document.getElementById('tec-id').value=t.id;
+  document.getElementById('tec-nombre').value=t.nombre;
+  document.getElementById('tec-cargo').value=t.cargo;
+  document.getElementById('tec-turno').value=t.turno;
+  document.getElementById('tec-edit-idx').value=idx;
+  document.getElementById('tec-form-title').textContent='Editar Técnico';
+  document.getElementById('tec-id').focus();
+}
+function eliminarTecnico(idx){
+  if(!confirm('¿Eliminar al técnico '+tecnicos[idx].nombre+'?'))return;
+  tecnicos.splice(idx,1);
+  renderTecnicos();
+  syncTecnicoSelects();
+  guardarEstado();
+  poblarLoginSelect();
+  notif('Técnico eliminado','warn');
+}
+function cancelarEditTecnico(){
+  document.getElementById('tec-id').value='';
+  document.getElementById('tec-nombre').value='';
+  document.getElementById('tec-turno').value='T1 — 6:00 AM a 2:00 PM';
+  document.getElementById('tec-edit-idx').value='-1';
+  document.getElementById('tec-form-title').textContent='Registrar Nuevo Técnico';
+}
+function renderTecnicos(){
+  var tbody=document.getElementById('tec-tbody');
+  var empty=document.getElementById('tec-empty');
+  if(!tbody)return;
+  if(tecnicos.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=tecnicos.map(function(t,i){
+    var ini=t.nombre.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    return '<tr>'+
+      '<td><div class="tec-avatar">'+ini+'</div></td>'+
+      '<td><span class="tec-id-badge">'+t.id+'</span></td>'+
+      '<td style="font-weight:700;color:#1e293b">'+t.nombre+'</td>'+
+      '<td style="color:#475569;font-size:0.75rem">'+t.cargo+'</td>'+
+      '<td style="color:#64748b;font-size:0.75rem">'+t.turno.split(' — ')[0]+'</td>'+
+      '<td>'+
+        '<button class="btn-icon" style="background:#dbeafe;color:#1e40af;margin-right:4px" onclick="editarTecnico('+i+')">✏ Editar</button>'+
+        '<button class="btn-icon" style="background:#fef2f2;color:#b91c1c" onclick="eliminarTecnico('+i+')">✕</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+}
+function syncTecnicoSelects(){
+  var opts=tecnicos.map(function(t){return'<option value="'+t.id+'">'+t.nombre+'</option>';}).join('');
+  ['ot-tecnico','prev-tecnico'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+
+/* ========== EQUIPOS SELECTS ========== */
+function buildEquipoOpts(){
+  var opts='';
+  Object.keys(PLANTAS).forEach(function(planta){
+    PLANTAS[planta].grupos.forEach(function(g){
+      g.ids.forEach(function(id){opts+='<option>'+g.prefix+'-'+id+'</option>';});
+    });
+  });
+  return opts;
+}
+
+/* ========== OTs ========== */
+function guardarOT(estado){
+  var num=document.getElementById('ot-num').value;
+  var equipo=document.getElementById('ot-equipo').value;
+  var planta=document.getElementById('ot-planta').value;
+  var tipo=document.getElementById('ot-tipo').value;
+  var tecId=document.getElementById('ot-tecnico').value;
+  var tecObj=tecnicos.find(function(t){return t.id===tecId;})||{nombre:tecId};
+  var desc=document.getElementById('ot-desc').value.trim();
+  var trabajo=document.getElementById('ot-trabajo').value.trim();
+  var tiempo=document.getElementById('ot-tiempo').value;
+  var fecha=document.getElementById('ot-fecha').value;
+  if(!desc){alert('Ingrese la descripción de la falla');return;}
+  OTs.unshift({num:num,fecha:fecha,turno:turnoActual,planta:planta,equipo:equipo,tipo:tipo,
+    tecnico:tecObj.nombre+' ('+tecId+')',desc:desc,trabajo:trabajo,estado:estado,hrs:parseFloat(tiempo)||0,repuestos:repuestosTemp.slice()});
+  var m=machines[equipo];
+  if(m){
+    if(estado==='Completada'){m.status='OK';m.tecnicoNombre='';m.tecnicoId='';m.fechaEntrada='';m.mttoStart=0;}
+    else{m.status='MTTO';m.tecnicoNombre=tecObj.nombre;m.tecnicoId=tecId;m.fechaEntrada=new Date().toLocaleTimeString('es-DO');m.mttoStart=Date.now();}
+  }
+  actualizarCostos();renderOTs();renderOTsRecientes();updateOTBadge();guardarEstado();
+  repuestosTemp=[];document.getElementById('rep-list').innerHTML='';
+  document.getElementById('ot-desc').value='';document.getElementById('ot-trabajo').value='';
+  nextOTNum();
+  notif('OT '+num+' — '+estado,'success');
+}
+function renderOTs(){
+  var tbody=document.getElementById('ot-tbody');if(!tbody)return;
+  var empty=document.getElementById('ot-empty');
+  var busq=(document.getElementById('ot-search')||{}).value||'';
+  var data=OTs.filter(function(o){
+    var mE=estadoFiltro==='Todas'||o.estado===estadoFiltro;
+    var mB=!busq||(o.num+o.equipo+o.tecnico+o.desc+(o.turno||'')+(o.planta||'')).toLowerCase().includes(busq.toLowerCase());
+    return mE&&mB;
+  });
+  if(data.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=data.map(function(o){
+    var realIdx=OTs.indexOf(o);
+    var cls=o.estado==='Abierta'?'badge-open':o.estado==='En Progreso'?'badge-prog':o.estado==='Completada'?'badge-done':o.estado==='Anulada'?'badge-anulada':'badge-cancel';
+    var tcls=o.turno==='T1'?'badge-t1':o.turno==='T2'?'badge-t2':'badge-t3';
+    var btnCerrar='';
+    if(o.estado==='Abierta'||o.estado==='En Progreso'){
+      btnCerrar='<br><button onclick="abrirCerrarOT('+realIdx+')" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:0.6rem;font-weight:800;margin-top:3px">✓ Cerrar OT</button>'+
+        '<button onclick="cancelarOT('+realIdx+')" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:0.6rem;font-weight:800;margin-top:3px;margin-left:3px">✕ Anular</button>';
+    }
+    return '<tr>'+
+      '<td style="font-weight:700;color:#0f172a;white-space:nowrap">'+o.num+btnCerrar+'</td>'+
+      '<td>'+o.fecha+'</td>'+
+      '<td><span class="badge '+tcls+'">'+o.turno+'</span></td>'+
+      '<td><span style="font-size:0.68rem;font-weight:700;color:'+(o.planta==='ARENA'?'#0f766e':'#b45309')+'">'+o.planta+'</span></td>'+
+      '<td style="font-weight:700">'+o.equipo+'</td>'+
+      '<td>'+o.tipo+'</td>'+
+      '<td>'+o.tecnico+'</td>'+
+      '<td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o.desc+'</td>'+
+      '<td><span class="badge '+cls+'">'+o.estado+'</span></td>'+
+      '<td>'+o.hrs+'h</td>'+
+    '</tr>';
+  }).join('');
+}
+
+/* ========== CERRAR / ANULAR OT ========== */
+var otIdxCierre=-1;
+function abrirCerrarOT(idx){
+  otIdxCierre=idx;
+  var o=OTs[idx];
+  document.getElementById('cierre-titulo').textContent='Cerrar '+o.num+' — '+o.equipo;
+  document.getElementById('cierre-info').innerHTML=
+    '<div class="modal-info-row"><span class="modal-info-lbl">OT</span><span class="modal-info-val">'+o.num+'</span></div>'+
+    '<div class="modal-info-row"><span class="modal-info-lbl">Equipo</span><span class="modal-info-val">'+o.equipo+'</span></div>'+
+    '<div class="modal-info-row"><span class="modal-info-lbl">Técnico</span><span class="modal-info-val">'+o.tecnico+'</span></div>'+
+    '<div class="modal-info-row"><span class="modal-info-lbl">Estado actual</span><span class="modal-info-val">'+o.estado+'</span></div>';
+  document.getElementById('cierre-trabajo').value=o.trabajo||'';
+  document.getElementById('cierre-hrs').value=o.hrs||'';
+  abrirModal('modal-cierre','cierre-trabajo');
+}
+function confirmarCierreOT(){
+  if(otIdxCierre<0)return;
+  var trabajo=document.getElementById('cierre-trabajo').value.trim();
+  var hrs=parseFloat(document.getElementById('cierre-hrs').value)||0;
+  if(!trabajo){document.getElementById('cierre-trabajo').style.borderColor='#ef4444';return;}
+  var o=OTs[otIdxCierre];
+  o.estado='Completada';
+  o.trabajo=trabajo;
+  o.hrs=hrs;
+  o.fechaCierre=new Date().toLocaleString('es-DO');
+  o.turnoCierre=turnoActual;
+  // Liberar máquina si estaba en taller
+  var m=machines[o.equipo];
+  if(m&&m.status==='MTTO'){m.status='OK';m.tecnicoNombre='';m.tecnicoId='';m.fechaEntrada='';m.mttoStart=0;}
+  otIdxCierre=-1;
+  cerrarModales();
+  renderOTs();renderOTsRecientes();updateOTBadge();actualizarCostos();guardarEstado();
+  notif('✅ OT cerrada correctamente','success');
+}
+function cancelarOT(idx){
+  if(!confirm('¿Anular la OT '+OTs[idx].num+'? Esta acción no libera la máquina.'))return;
+  OTs[idx].estado='Anulada';
+  renderOTs();renderOTsRecientes();updateOTBadge();guardarEstado();
+  notif('OT '+OTs[idx].num+' anulada','warn');
+}
+function renderOTsRecientes(){
+  var el=document.getElementById('ots-recientes');if(!el)return;
+  var ab=OTs.filter(function(o){return o.estado==='Abierta'||o.estado==='En Progreso';}).slice(0,5);
+  if(ab.length===0){el.innerHTML='<p style="color:#94a3b8">No hay OTs abiertas.</p>';return;}
+  el.innerHTML=ab.map(function(o){
+    var cls=o.estado==='Abierta'?'badge-open':'badge-prog';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;gap:6px">'+
+      '<span style="font-weight:700;color:#1e293b;font-size:0.75rem">'+o.num+'</span>'+
+      '<span style="font-size:0.75rem">'+o.equipo+'</span>'+
+      '<span class="badge '+cls+'">'+o.estado+'</span>'+
+    '</div>';
+  }).join('');
+}
+function filtrarEstado(e,el){
+  estadoFiltro=e;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active')});
+  el.classList.add('active');renderOTs();
+}
+function updateOTBadge(){
+  var n=OTs.filter(function(o){return o.estado==='Abierta'||o.estado==='En Progreso';}).length;
+  document.getElementById('ot-badge').textContent=n;
+}
+function addRepuesto(){
+  var sap=document.getElementById('rep-sap').value.trim();
+  var desc=document.getElementById('rep-desc').value.trim();
+  var qty=document.getElementById('rep-qty').value;
+  if(!desc)return;
+  repuestosTemp.push({sap:sap||'—',desc:desc,qty:qty});
+  document.getElementById('rep-list').innerHTML='<div style="padding:7px;background:#f8fafc;border-radius:6px;font-size:0.74rem">'+
+    repuestosTemp.map(function(r){return'<div style="padding:2px 0;border-bottom:1px solid #f1f5f9">'+r.qty+'x '+r.desc+' (SAP:'+r.sap+')</div>';}).join('')+'</div>';
+  document.getElementById('rep-sap').value='';document.getElementById('rep-desc').value='';document.getElementById('rep-qty').value='1';
+}
+function exportarOTs(){
+  if(OTs.length===0){alert('No hay OTs para exportar');return;}
+  var csv='OT,Fecha,Turno,Planta,Equipo,Tipo,Técnico,Descripción,Estado,Horas\n';
+  OTs.forEach(function(o){csv+='"'+o.num+'","'+o.fecha+'","'+(o.turno||'')+'","'+(o.planta||'')+'","'+o.equipo+'","'+o.tipo+'","'+o.tecnico+'","'+o.desc+'","'+o.estado+'","'+o.hrs+'"\n';});
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='OTs_Aurora_'+new Date().toISOString().split('T')[0]+'.csv';a.click();URL.revokeObjectURL(url);
+}
+
+/* ========== PREVENTIVO ========== */
+function agregarPreventivo(){
+  var equipo=document.getElementById('prev-equipo').value;
+  var freq=document.getElementById('prev-freq').value;
+  var fecha=document.getElementById('prev-fecha').value;
+  var tarea=document.getElementById('prev-tarea').value.trim();
+  var tecId=document.getElementById('prev-tecnico').value;
+  var tecObj=tecnicos.find(function(t){return t.id===tecId;})||{nombre:tecId};
+  if(!tarea){alert('Ingrese la tarea');return;}
+  preventivos.push({equipo:equipo,freq:freq,fecha:fecha,tarea:tarea,tecnico:tecObj.nombre,completado:false});
+  document.getElementById('prev-tarea').value='';renderPreventivo();
+  guardarEstado();
+  notif('Tarea preventiva: '+equipo,'success');
+}
+function renderPreventivo(){
+  var el=document.getElementById('prev-list');var empty=document.getElementById('prev-empty');if(!el)return;
+  if(preventivos.length===0){el.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  var hoy=new Date();hoy.setHours(0,0,0,0);var ok=0,due=0,venc=0;
+  el.innerHTML=preventivos.map(function(p){
+    var fd=new Date(p.fecha+'T00:00:00');
+    var diff=Math.round((fd-hoy)/86400000);
+    var badge,color;
+    if(p.completado){badge='Completado';color='badge-done';ok++;}
+    else if(diff<0){badge='Vencido';color='badge-open';venc++;}
+    else if(diff<=7){badge='En '+diff+'d';color='badge-prog';due++;}
+    else{badge='Programado';color='badge-cancel';ok++;}
+    return'<div class="prev-row"><span style="font-weight:700;color:#1e293b;font-size:0.75rem">'+p.equipo+'</span><span style="font-size:0.73rem">'+p.tarea+'</span><span style="font-size:0.7rem;color:#64748b">'+p.freq+'</span><span style="font-size:0.7rem">'+p.fecha+'</span><span><span class="badge '+color+'">'+badge+'</span></span></div>';
+  }).join('');
+  document.getElementById('prev-cnt-ok').textContent=ok;
+  document.getElementById('prev-cnt-due').textContent=due;
+  document.getElementById('prev-cnt-venc').textContent=venc;
+  document.getElementById('prev-total').textContent=preventivos.length;
+  document.getElementById('prev-cumplimiento').textContent=preventivos.length>0?Math.round((ok/preventivos.length)*100)+'%':'—';
+}
+
+/* ========== SAP ========== */
+function fSAP(v){document.querySelectorAll('#sap-tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().includes(v.toLowerCase())?'':'none';});}
+
+/* ========== CALCULADORAS ========== */
+function calcMotor(){
+  var v=parseFloat(document.getElementById('m-v').value),a=parseFloat(document.getElementById('m-a').value),hp=parseFloat(document.getElementById('m-hp').value),p=parseInt(document.getElementById('m-p').value);
+  if(isNaN(v)||isNaN(a)||isNaN(hp)){alert('Complete todos los campos');return;}
+  var rpm=(120*60)/p;
+  showMotorResult([['Velocidad sincronismo',rpm+' RPM'],['Potencia eléctrica',(hp*0.746).toFixed(2)+' kW'],['Consumo aparente',((v*a*1.732)/1000).toFixed(2)+' kVA'],['Factor de potencia',(hp*746/(v*a*1.732)).toFixed(3)],['Torque',((hp*5252)/rpm).toFixed(2)+' lb·ft']]);
+}
+function calcOhm(){
+  var v=parseFloat(document.getElementById('m-v').value),a=parseFloat(document.getElementById('m-a').value);
+  if(isNaN(v)||isNaN(a)||a===0){alert('Faltan Voltaje o Amperaje');return;}
+  showMotorResult([['Resistencia R=V/I',(v/a).toFixed(2)+' Ω'],['Potencia P=V×I',(v*a).toFixed(2)+' W'],['Potencia kW',(v*a/1000).toFixed(3)+' kW']]);
+}
+function showMotorResult(rows){
+  document.getElementById('motor-data').innerHTML=rows.map(function(r){return'<div class="res-row"><span>'+r[0]+'</span><span class="res-val">'+r[1]+'</span></div>';}).join('');
+  document.getElementById('res-motor').style.display='block';
+}
+function clearMotor(){document.getElementById('res-motor').style.display='none';['m-v','m-a','m-hp'].forEach(function(id){document.getElementById(id).value='';});}
+function convertMM(){
+  var mm=parseFloat(document.getElementById('val-mm').value);
+  if(isNaN(mm)){['res-in','res-cm','res-m','res-ft'].forEach(function(id){document.getElementById(id).textContent='—'});return;}
+  document.getElementById('res-in').textContent=(mm/25.4).toFixed(4)+' "';
+  document.getElementById('res-cm').textContent=(mm/10).toFixed(3)+' cm';
+  document.getElementById('res-m').textContent=(mm/1000).toFixed(4)+' m';
+  document.getElementById('res-ft').textContent=(mm/304.8).toFixed(4)+' ft';
+}
+function convertTemp(){
+  var c=parseFloat(document.getElementById('val-c').value);
+  if(isNaN(c)){document.getElementById('res-f').textContent='—';document.getElementById('res-k').textContent='—';return;}
+  document.getElementById('res-f').textContent=((c*9/5)+32).toFixed(2)+' °F';
+  document.getElementById('res-k').textContent=(c+273.15).toFixed(2)+' K';
+}
+
+/* ========== KPI ========== */
+function calcKPI(){
+  var h=parseFloat(document.getElementById('h-total').value)||0,f=parseFloat(document.getElementById('f-total').value)||0,hr=parseFloat(document.getElementById('h-rep').value)||0;
+  var ef=parseFloat(document.getElementById('efic').value)||92,cal=parseFloat(document.getElementById('cal').value)||95;
+  var mtbf=f>0?((h-hr)/f).toFixed(1):'∞',mttr=f>0?(hr/f).toFixed(2):0;
+  var disp=h>0?(((h-hr)/h)*100).toFixed(1):100;
+  var oee=((parseFloat(disp)/100)*(ef/100)*(cal/100)*100).toFixed(1);
+  document.getElementById('res-mtbf').textContent='MTBF: '+mtbf+' horas';
+  document.getElementById('res-mttr').textContent=mttr+' h/falla';
+  document.getElementById('res-disp').textContent=disp+'%';
+  document.getElementById('res-rend').textContent=ef+'%';
+  document.getElementById('res-cal').textContent=cal+'%';
+  document.getElementById('res-oee').textContent=oee+'%';
+  document.getElementById('bar-disp').style.width=Math.min(disp,100)+'%';
+  document.getElementById('bar-oee').style.width=Math.min(oee,100)+'%';
+}
+
+/* ========== GRÁFICAS ========== */
+function initCharts(){
+  setTimeout(function(){
+    var c1=document.getElementById('chart-fallas');
+    if(c1&&!chartFallas)chartFallas=new Chart(c1,{type:'bar',data:{labels:['Nov','Dic','Ene','Feb','Mar','Abr'],datasets:[{label:'Fallas',data:[8,5,7,3,6,4],backgroundColor:'rgba(239,68,68,0.7)',borderRadius:4},{label:'Preventivos',data:[12,14,11,15,13,14],backgroundColor:'rgba(45,212,191,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});
+    var c2=document.getElementById('chart-ots');
+    if(c2&&!chartOts)chartOts=new Chart(c2,{type:'doughnut',data:{labels:['Abiertas','En Progreso','Completadas'],datasets:[{data:[3,1,12],backgroundColor:['#fbbf24','#60a5fa','#34d399'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}},cutout:'65%'}});
+    var c3=document.getElementById('chart-kpi');
+    if(c3&&!chartKpi)chartKpi=new Chart(c3,{type:'radar',data:{labels:['Disponibilidad','Rendimiento','Calidad','MTBF','Cumplimiento'],datasets:[{data:[89,92,95,75,88],backgroundColor:'rgba(139,92,246,0.2)',borderColor:'#8b5cf6',pointBackgroundColor:'#8b5cf6',borderWidth:2,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{ticks:{display:false},grid:{color:'rgba(0,0,0,0.08)'},pointLabels:{font:{size:9}},min:0,max:100}}}});
+  },400);
+}
+
+/* ========== VISOR ========== */
+function abrirVisor(titulo,url){
+  document.getElementById('visor-title').textContent=titulo;
+  var body=document.getElementById('visor-body');
+  body.innerHTML=url?'<iframe class="visor-iframe" src="'+url+'" title="'+titulo+'"></iframe>':
+    '<div class="visor-placeholder"><p style="color:#94a3b8;font-size:1rem">📂 '+titulo+'</p><small style="color:#475569;display:block;margin:8px 0">Haga clic en "Subir PDF / HTML" para cargar el archivo</small><label class="visor-upload-btn" for="visor-file-input">📂 Seleccionar archivo...</label></div>';
+  document.getElementById('visor-panel').style.display='flex';
+}
+function cerrarVisor(){document.getElementById('visor-panel').style.display='none';document.getElementById('visor-body').innerHTML='';document.getElementById('visor-file-input').value='';}
+function cargarArchivoManual(input){
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  var url=URL.createObjectURL(file);
+  var body=document.getElementById('visor-body');
+  body.innerHTML='<iframe class="visor-iframe" src="'+url+'" title="'+file.name+'"></iframe>';
+  document.getElementById('visor-title').textContent=document.getElementById('visor-title').textContent+' — '+file.name;
+}
+
+/* ========== NAV ========== */
+function nav(view,el){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
+  document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active')});
+  document.getElementById('v-'+view).classList.add('active');
+  el.classList.add('active');
+  if(view==='historial')renderOTs();
+  if(view==='nueva-ot'){renderOTsRecientes();syncEquipoOT();}
+  if(view==='preventivo'){renderPreventivo();syncEquipoPrev();}
+  if(view==='tecnicos')renderTecnicos();
+  if(view==='chat')cargarAPIKey();
+}
+
+/* ========== TÉCNICOS — ACCESO CON CONTRASEÑA ADMIN ========== */
+var navTecnicosEl=null;
+function navTecnicos(el){
+  navTecnicosEl=el;
+  document.getElementById('admin-pass').value='';
+  document.getElementById('admin-pass').style.borderColor='#e2e8f0';
+  abrirModal('modal-admin','admin-pass');
+}
+function verificarAdmin(){
+  var pass=document.getElementById('admin-pass').value.trim();
+  if(pass===ADMIN_PASS||pass===ADMIN_PIN){
+    cerrarModales();
+    nav('tecnicos',navTecnicosEl||document.querySelector('.nav-item'));
+    notif('🔓 Acceso de administrador concedido','success');
+  } else {
+    var inp=document.getElementById('admin-pass');
+    inp.classList.add('error');inp.style.borderColor='#ef4444';
+    notif('❌ Contraseña incorrecta','error');
+    setTimeout(function(){inp.classList.remove('error');inp.style.borderColor='#e2e8f0';inp.value='';},1200);
+  }
+}
+
+/* ========== GUARDAR TÉCNICO — sincronizar login dropdown ========== */
+var _origGuardarTecnico=guardarTecnico;
+// Override to also refresh login select
+function guardarTecnicoConSync(){
+  guardarTecnico();
+  poblarLoginSelect();
+}
+
+function syncEquipoOT(){
+  var el=document.getElementById('ot-equipo');
+  if(el)el.innerHTML=buildEquipoOpts();
+}
+function syncEquipoPrev(){
+  var el=document.getElementById('prev-equipo');
+  if(el)el.innerHTML=buildEquipoOpts();
+}
+
+/* ========== UTILS ========== */
+function abrirModal(id,focusId){
+  cerrarModales();
+  document.getElementById(id).style.display='flex';
+  if(focusId)setTimeout(function(){var e=document.getElementById(focusId);if(e)e.focus();},100);
+}
+function cerrarModales(){['modal-entrada','modal-salida','modal-email','modal-cierre','modal-admin'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});}
+function sacudir(inputId){
+  var el=document.getElementById(inputId);
+  el.classList.add('error');el.style.borderColor='#ef4444';
+  setTimeout(function(){el.classList.remove('error');el.style.borderColor='#e2e8f0';},700);
+}
+function notif(msg,tipo){
+  var el=document.getElementById('notif');
+  el.textContent=msg;el.className='notification notif-'+(tipo||'success');
+  el.style.display='block';setTimeout(function(){el.style.display='none';},4500);
+}
+function setToday(){
+  var t=new Date().toISOString().split('T')[0],h=new Date().toTimeString().slice(0,5);
+  ['ot-fecha'].forEach(function(id){var e=document.getElementById(id);if(e)e.value=t;});
+  var oh=document.getElementById('ot-hora');if(oh)oh.value=h;
+  var pf=document.getElementById('prev-fecha');if(pf)pf.value=t;
+  nextOTNum();
+}
+function nextOTNum(){otCounter++;var el=document.getElementById('ot-num');if(el)el.value='OT-'+otCounter;}
+
+/* ========== CHAT IA ========== */
+var chatHistory=[];
+var CHAT_STORAGE='aurora_chat_key';
+
+function guardarAPIKey(){
+  var k=document.getElementById('anthropic-key').value.trim();
+  var st=document.getElementById('api-key-status');
+  if(k.startsWith('sk-ant-')){
+    localStorage.setItem(CHAT_STORAGE,k);
+    st.textContent='✅ Clave guardada';st.style.color='#0f766e';
+  } else if(k.length>0){
+    st.textContent='⚠ Formato inválido';st.style.color='#b45309';
+  } else {
+    localStorage.removeItem(CHAT_STORAGE);
+    st.textContent='Sin clave';st.style.color='#94a3b8';
+  }
+}
+
+function cargarAPIKey(){
+  var k=localStorage.getItem(CHAT_STORAGE)||'';
+  var el=document.getElementById('anthropic-key');
+  var st=document.getElementById('api-key-status');
+  if(el&&k){
+    el.value=k;
+    if(st){st.textContent='✅ Clave guardada';st.style.color='#0f766e';}
+  }
+}
+
+function getAPIKey(){
+  return (document.getElementById('anthropic-key')||{}).value||localStorage.getItem(CHAT_STORAGE)||'';
+}
+
+function enviarChat(){
+  var inputEl=document.getElementById('chat-input');
+  var msg=inputEl.value.trim();
+  if(!msg)return;
+
+  var apiKey=getAPIKey();
+  if(!apiKey||!apiKey.startsWith('sk-ant-')){
+    agregarBurbuja('ai','⚠ Por favor ingrese su clave API de Anthropic en el campo amarillo de arriba para activar el chat. Obténgala en console.anthropic.com','Sistema',new Date().toLocaleTimeString('es-DO'));
+    return;
   }
 
-  function convertTemp() {
-    var c = parseFloat(document.getElementById('val-c').value);
-    if (isNaN(c)) { document.getElementById('res-f').textContent = '—'; document.getElementById('res-k').textContent = '—'; return; }
-    document.getElementById('res-f').textContent = ((c * 9 / 5) + 32).toFixed(2) + ' °F';
-    document.getElementById('res-k').textContent = (c + 273.15).toFixed(2) + ' K';
-  }
+  inputEl.value='';
+  var autor=usuarioActual?usuarioActual.nombre:'Usuario';
+  var ahora=new Date().toLocaleTimeString('es-DO');
+  agregarBurbuja('me',msg,autor,ahora);
 
-  /* ---- KPI ---- */
-  function calcKPI() {
-    var h = parseFloat(document.getElementById('h-total').value) || 0;
-    var f = parseFloat(document.getElementById('f-total').value) || 0;
-    var hr = parseFloat(document.getElementById('h-rep').value) || 0;
-    var ef = parseFloat(document.getElementById('efic').value) || 92;
-    var cal = parseFloat(document.getElementById('cal').value) || 95;
-    var mtbf = f > 0 ? ((h - hr) / f).toFixed(1) : '∞';
-    var mttr = f > 0 ? (hr / f).toFixed(2) : 0;
-    var disp = h > 0 ? (((h - hr) / h) * 100).toFixed(1) : 100;
-    var oee = ((parseFloat(disp) / 100) * (ef / 100) * (cal / 100) * 100).toFixed(1);
-    document.getElementById('res-mtbf').textContent = 'MTBF: ' + mtbf + ' horas';
-    document.getElementById('res-mttr').textContent = mttr + ' h/falla';
-    document.getElementById('res-disp').textContent = disp + '%';
-    document.getElementById('res-rend').textContent = ef + '%';
-    document.getElementById('res-cal').textContent = cal + '%';
-    document.getElementById('res-oee').textContent = oee + '%';
-    document.getElementById('bar-disp').style.width = Math.min(disp, 100) + '%';
-    document.getElementById('bar-oee').style.width = Math.min(oee, 100) + '%';
-  }
+  var typing=document.getElementById('chat-typing');
+  var msgs=document.getElementById('chat-messages');
+  typing.style.display='flex';
+  msgs.appendChild(typing);
+  msgs.scrollTop=msgs.scrollHeight;
 
-  /* ---- GRÁFICAS ---- */
-  function initCharts() {
-    setTimeout(function () {
-      var ctx1 = document.getElementById('chart-fallas');
-      if (ctx1 && !chartFallas) {
-        chartFallas = new Chart(ctx1, {
-          type: 'bar',
-          data: {
-            labels: ['Nov', 'Dic', 'Ene', 'Feb', 'Mar', 'Abr'],
-            datasets: [
-              { label: 'Fallas', data: [8, 5, 7, 3, 6, 4], backgroundColor: 'rgba(239,68,68,0.7)', borderRadius: 5 },
-              { label: 'Preventivos', data: [12, 14, 11, 15, 13, 14], backgroundColor: 'rgba(45,212,191,0.7)', borderRadius: 5 }
-            ]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 12 } } }, scales: { x: { ticks: { font: { size: 10 } } }, y: { ticks: { font: { size: 10 } }, beginAtZero: true } } }
-        });
-      }
-      var ctx2 = document.getElementById('chart-ots');
-      if (ctx2 && !chartOts) {
-        chartOts = new Chart(ctx2, {
-          type: 'doughnut',
-          data: {
-            labels: ['Abiertas', 'En Progreso', 'Completadas'],
-            datasets: [{ data: [3, 1, 12], backgroundColor: ['#fbbf24', '#60a5fa', '#34d399'], borderWidth: 0 }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } } }, cutout: '65%' }
-        });
-      }
-      var ctx3 = document.getElementById('chart-kpi');
-      if (ctx3 && !chartKpi) {
-        chartKpi = new Chart(ctx3, {
-          type: 'radar',
-          data: {
-            labels: ['Disponibilidad', 'Rendimiento', 'Calidad', 'MTBF', 'Cumplimiento'],
-            datasets: [{ label: 'KPI Planta', data: [89, 92, 95, 75, 88], backgroundColor: 'rgba(139,92,246,0.2)', borderColor: '#8b5cf6', pointBackgroundColor: '#8b5cf6', borderWidth: 2, pointRadius: 3 }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { ticks: { display: false }, grid: { color: 'rgba(0,0,0,0.08)' }, pointLabels: { font: { size: 9 } }, min: 0, max: 100 } } }
-        });
-      }
-    }, 400);
-  }
+  chatHistory.push({role:'user',content:msg});
 
-  /* ---- NOTIFICACIÓN ---- */
-  function notif(msg) {
-    var el = document.getElementById('notif');
-    el.textContent = msg;
-    el.style.display = 'block';
-    setTimeout(function () { el.style.display = 'none'; }, 3000);
-  }
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-opus-4-5',
+      max_tokens:1000,
+      system:'Eres el asistente técnico del Sistema AURORA CMMS PRO de La Aurora Industrial. Responde en español de forma clara, concisa y profesional. Ayudas con: mantenimiento industrial correctivo y preventivo, análisis de fallas mecánicas y eléctricas, cálculo de KPIs (MTBF, MTTR, OEE, Disponibilidad), procedimientos de seguridad LOTO, gestión de órdenes de trabajo, optimización de costos de mantenimiento, y cualquier duda técnica de planta. El turno activo es '+turnoActual+'. El usuario consultando es: '+(usuarioActual?usuarioActual.nombre+' — '+usuarioActual.cargo:'usuario')+'.',
+      messages:chatHistory.slice(-12)
+    })
+  })
+  .then(function(r){
+    if(!r.ok){return r.json().then(function(e){throw new Error(e.error?e.error.message:'Error '+r.status);});}
+    return r.json();
+  })
+  .then(function(data){
+    typing.style.display='none';
+    var resp=data.content&&data.content[0]?data.content[0].text:'Sin respuesta.';
+    chatHistory.push({role:'assistant',content:resp});
+    agregarBurbuja('ai',resp,'Asistente IA',new Date().toLocaleTimeString('es-DO'));
+  })
+  .catch(function(err){
+    typing.style.display='none';
+    var errMsg='Error al conectar con la IA: '+err.message;
+    if(err.message.includes('401')||err.message.includes('authentication')){
+      errMsg='❌ Clave API inválida o expirada. Verifique su clave en console.anthropic.com';
+    } else if(err.message.includes('Failed to fetch')||err.message.includes('NetworkError')){
+      errMsg='⚠ Sin conexión a internet. Verifique su red e intente de nuevo.';
+    }
+    agregarBurbuja('ai',errMsg,'Sistema',new Date().toLocaleTimeString('es-DO'));
+  });
+}
 
-  /* ---- RELOJ ---- */
-  setInterval(function () {
-    var el = document.getElementById('clock');
-    if (el) el.textContent = new Date().toLocaleTimeString('es-DO');
-  }, 1000);
+function agregarBurbuja(tipo,texto,autor,hora){
+  var msgs=document.getElementById('chat-messages');
+  if(!msgs)return;
+  var div=document.createElement('div');
+  div.className='chat-msg '+(tipo==='me'?'me':'');
+  var ini=(autor||'?').trim()[0].toUpperCase();
+  var avClass=tipo==='me'?'me':'sys';
+  div.innerHTML=
+    '<div class="chat-avatar '+avClass+'">'+ini+'</div>'+
+    '<div style="max-width:100%">'+
+      '<div class="chat-bubble '+tipo+'">'+texto.replace(/\n/g,'<br>')+'</div>'+
+      '<div class="chat-meta">'+autor+' · '+hora+'</div>'+
+    '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// Cargar API key guardada cuando el chat se abre
+document.addEventListener('DOMContentLoaded',function(){
+  cargarAPIKey();
+});
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){cerrarModales();cerrarVisor();}});
+setInterval(function(){var el=document.getElementById('clock');if(el)el.textContent=new Date().toLocaleTimeString('es-DO');},1000);
 </script>
 </body>
 </html>
-
